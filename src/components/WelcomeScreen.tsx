@@ -1,7 +1,6 @@
 import HfIcon from "./HfIcon";
 import GlassContainer from "./GlassContainer";
 import GlassButton from "./GlassButton";
-import { GLASS_EFFECTS } from "../constants";
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -33,20 +32,6 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           </div>
         </GlassContainer>
 
-        {/* Webcam Status Card */}
-        <GlassContainer
-          bgColor={GLASS_EFFECTS.COLORS.SUCCESS_BG}
-          className="rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200"
-          role="status"
-          aria-label="Camera status"
-        >
-          <div className="p-4">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-              <p className="text-green-400 font-medium">Camera ready</p>
-            </div>
-          </div>
-        </GlassContainer>
 
         {/* How It Works Card */}
         <GlassContainer

@@ -2,78 +2,75 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 import CaptioningView from "./components/CaptioningView";
 import WelcomeScreen from "./components/WelcomeScreen";
-import WebcamPermissionDialog from "./components/WebcamPermissionDialog";
+import InputSourceDialog from "./components/InputSourceDialog";
 import type { AppState } from "./types";
 
 export default function App() {
-  const [appState, setAppState] = useState<AppState>("requesting-permission");
-  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
+  const [appState, setAppState] = useState<AppState>("welcome");
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [sourceType, setSourceType] = useState<"screen" | "file" | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const handlePermissionGranted = useCallback((stream: MediaStream) => {
-    setWebcamStream(stream);
-    setAppState("welcome");
+  const handleSourceSelected = useCallback((stream: MediaStream, type: "screen" | "file") => {
+    setMediaStream(stream);
+    setSourceType(type);
+    setAppState("loading");
   }, []);
 
   const handleStart = useCallback(() => {
-    setAppState("loading");
+    setAppState("source-selection");
   }, []);
 
   const handleLoadingComplete = useCallback(() => {
     setAppState("captioning");
   }, []);
 
-  const playVideo = useCallback(async (video: HTMLVideoElement) => {
-    try {
-      await video.play();
-    } catch (error) {
-      console.error("Failed to play video:", error);
+  const setupVideo = useCallback((video: HTMLVideoElement, stream: MediaStream) => {
+    const videoFileUrl = (stream as any).videoFileUrl as string | undefined;
+
+    if (videoFileUrl) {
+      video.srcObject = null;
+      video.src = videoFileUrl;
+    } else {
+      video.src = "";
+      video.srcObject = stream;
     }
+
+    const handleCanPlay = () => {
+      setIsVideoReady(true);
+      video.play().catch(() => {});
+    };
+
+    video.addEventListener("canplay", handleCanPlay, { once: true });
+
+    return () => {
+      video.removeEventListener("canplay", handleCanPlay);
+    };
   }, []);
 
-  const setupVideo = useCallback(
-    (video: HTMLVideoElement, stream: MediaStream) => {
-      video.srcObject = stream;
-
-      const handleCanPlay = () => {
-        setIsVideoReady(true);
-        playVideo(video);
-      };
-
-      video.addEventListener("canplay", handleCanPlay, { once: true });
-
-      return () => {
-        video.removeEventListener("canplay", handleCanPlay);
-      };
-    },
-    [playVideo],
-  );
-
   useEffect(() => {
-    if (webcamStream && videoRef.current) {
+    if (mediaStream && videoRef.current) {
       const video = videoRef.current;
-
       video.srcObject = null;
       video.load();
-
-      const cleanup = setupVideo(video, webcamStream);
+      const cleanup = setupVideo(video, mediaStream);
       return cleanup;
     }
-  }, [webcamStream, setupVideo]);
+  }, [mediaStream, setupVideo]);
 
   const videoBlurState = useMemo(() => {
     switch (appState) {
-      case "requesting-permission":
-        return "blur(20px) brightness(0.2) saturate(0.5)";
       case "welcome":
         return "blur(12px) brightness(0.3) saturate(0.7)";
+      case "source-selection":
+        return "blur(20px) brightness(0.2) saturate(0.5)";
       case "loading":
         return "blur(8px) brightness(0.4) saturate(0.8)";
       case "captioning":
         return "none";
       default:
-        return "blur(20px) brightness(0.2) saturate(0.5)";
+        return "blur(12px) brightness(0.3) saturate(0.7)";
     }
   }, [appState]);
 
@@ -81,7 +78,7 @@ export default function App() {
     <div className="App relative h-screen overflow-hidden">
       <div className="absolute inset-0 bg-gray-900" />
 
-      {webcamStream && (
+      {mediaStream && (
         <video
           ref={videoRef}
           autoPlay
@@ -97,13 +94,13 @@ export default function App() {
 
       {appState !== "captioning" && <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" />}
 
-      {appState === "requesting-permission" && <WebcamPermissionDialog onPermissionGranted={handlePermissionGranted} />}
-
       {appState === "welcome" && <WelcomeScreen onStart={handleStart} />}
+
+      {appState === "source-selection" && <InputSourceDialog onSourceSelected={handleSourceSelected} />}
 
       {appState === "loading" && <LoadingScreen onComplete={handleLoadingComplete} />}
 
-      {appState === "captioning" && <CaptioningView videoRef={videoRef} />}
+      {appState === "captioning" && <CaptioningView videoRef={videoRef} sourceType={sourceType} />}
     </div>
   );
 }

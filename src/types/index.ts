@@ -1,5 +1,4 @@
-export type AppState = "requesting-permission" | "welcome" | "loading" | "captioning";
-
+export type AppState = "welcome" | "source-selection" | "loading" | "captioning";
 export interface GlassEffectProps {
   baseFrequency?: number;
   numOctaves?: number;
@@ -8,11 +7,6 @@ export interface GlassEffectProps {
   highlight?: string;
 }
 
-export interface WebcamPermissionError {
-  type: "general" | "https" | "not-supported" | "permission";
-  message: string;
-  details: string;
-}
 
 export interface Position {
   x: number;
