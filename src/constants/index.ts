@@ -31,26 +31,10 @@ export const LAYOUT = {
 } as const;
 
 export const TIMING = {
-  FRAME_CAPTURE_DELAY: 50,
-  VIDEO_RECOVERY_INTERVAL: 1000,
-  RESIZE_DEBOUNCE: 50,
-  SUGGESTION_DELAY: 50,
+  FRAME_CAPTURE_DELAY: 500, // Capture every 500ms (2 fps) - good balance for process analysis
 } as const;
 
-const DEFAULT_PROMPT = `As an expert Senior IT Consultant specializing in process analysis and digital workflow optimization, your task is to observe a series of screen recordings of a back-office knowledge worker. Your goal is to provide a highly detailed, structured summary of their activities to enable automated process mining.
-
-Your analysis should be broken down into the following sections:
-
-**1. Activity Log:**
-Provide a chronological, step-by-step description of the user's actions. Use specific and concise language. For each step, identify the action taken (e.g., "opened spreadsheet," "typed data into a field," "copied text," "navigated to URL").
-
-**2. Tools and Environment:**
-Identify all applications, websites, and documents visible on the screen. For web-based tools, list the specific URL or service name. For desktop applications, provide the application name (e.g., "Microsoft Excel," "SAP ERP," "Chrome browser").
-
-**3. Workflow Analysis Summary:**
-Synthesize the actions and environment into a high-level summary. Describe the goal of the current task or sub-process the user is performing. For example, "The user is completing the monthly expense report process by gathering data from a CRM, validating it in an ERP system, and entering it into a finance spreadsheet."
-
-This output will be used by our process mining tool to automatically infer process models, cluster tasks, and build a definitive taxonomy of back-office workflows. Ensure the information is granular and factual.`;
+const DEFAULT_PROMPT = `As an expert Senior IT Consultant specializing in workflow analysis and mapping, your task is to observe a series of screen recordings of a back-office knowledge worker. Your goal is to provide a highly detailed analysis of what you see on the screen to enable automated process mining.`;
 
 export const PROMPTS = {  
   default: DEFAULT_PROMPT,

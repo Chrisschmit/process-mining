@@ -11,6 +11,7 @@ import { RecordingManager } from "../utils/RecordingManager";
 interface CaptioningViewProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   sourceType: 'screen' | 'file' | null;
+  userInfo: { name: string; function: string } | null;
 }
 
 function useCaptioningLoop(
@@ -70,13 +71,16 @@ function useCaptioningLoop(
   }, [isRunning, isLoaded, runInference, promptRef, videoRef]);
 }
 
-export default function CaptioningView({ videoRef, sourceType }: CaptioningViewProps) {
+export default function CaptioningView({ videoRef, sourceType, userInfo }: CaptioningViewProps) {
   const [caption, setCaption] = useState<string>("");
-  const [isLoopRunning] = useState<boolean>(true);
+  // For video files, start analysis immediately; for screen recording, wait for user to start
+  const [isLoopRunning, setIsLoopRunning] = useState<boolean>(sourceType === 'file');
   const [currentPrompt, setCurrentPrompt] = useState<string>(PROMPTS.default);
   const [error, setError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const recordingManagerRef = useRef<RecordingManager>(new RecordingManager());
+  const lastLoggedCaptionRef = useRef<string>("");
+  const lastLogTimeRef = useRef<number>(0);
 
   // Use ref to store current prompt to avoid loop restarts
   const promptRef = useRef<string>(currentPrompt);
@@ -90,9 +94,26 @@ export default function CaptioningView({ videoRef, sourceType }: CaptioningViewP
     setCaption(newCaption);
     setError(null);
     
-    // Add feedback to recording if active
-    if (recordingManagerRef.current.isRecording()) {
-      recordingManagerRef.current.addFeedback(newCaption);
+    // Only log to CSV at the same frequency as frame capture (every TIMING.FRAME_CAPTURE_DELAY ms)
+    // and only if the caption has changed significantly (not just streaming tokens)
+    const now = Date.now();
+    const timeSinceLastLog = now - lastLogTimeRef.current;
+    
+    if (recordingManagerRef.current.isRecording() && 
+        timeSinceLastLog >= TIMING.FRAME_CAPTURE_DELAY &&
+        newCaption !== lastLoggedCaptionRef.current &&
+        newCaption.length > 0) {
+      
+      // Only log if this looks like a complete response (ends with punctuation or is long enough)
+      const isCompleteResponse = newCaption.match(/[.!?]$/) || 
+                                 newCaption.length > 100 ||
+                                 timeSinceLastLog > 1000;
+      
+      if (isCompleteResponse) {
+        recordingManagerRef.current.addFeedback(newCaption);
+        lastLoggedCaptionRef.current = newCaption;
+        lastLogTimeRef.current = now;
+      }
     }
   }, []);
 
@@ -108,15 +129,22 @@ export default function CaptioningView({ videoRef, sourceType }: CaptioningViewP
     setError(null);
   }, []);
 
-  const handleStartRecording = useCallback(() => {
-    if (sourceType === 'screen' && videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      recordingManagerRef.current.startRecording(stream);
-      setIsRecording(true);
+  const handleStartRecording = useCallback(async () => {
+    try {
+      if (sourceType === 'screen' && videoRef.current?.srcObject && userInfo) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        await recordingManagerRef.current.startRecording(stream, userInfo);
+        setIsRecording(true);
+        setIsLoopRunning(true); // Start VLM captioning when recording starts
+      }
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      setError(error instanceof Error ? error.message : 'Failed to start recording');
     }
-  }, [sourceType, videoRef]);
+  }, [sourceType, videoRef, userInfo]);
 
   const handleStopRecording = useCallback(async () => {
+    setIsLoopRunning(false); // Stop VLM captioning when recording stops
     const { videoBlob, csvContent, sessionId } = await recordingManagerRef.current.stopRecording();
     setIsRecording(false);
 
@@ -126,7 +154,7 @@ export default function CaptioningView({ videoRef, sourceType }: CaptioningViewP
     videoLink.href = videoUrl;
     videoLink.download = `${sessionId}.webm`;
     videoLink.click();
-    URL.revokeObjectURL(videoUrl);
+    setTimeout(() => URL.revokeObjectURL(videoUrl), 1000);
 
     // Download CSV
     const csvBlob = new Blob([csvContent], { type: 'text/csv' });
@@ -135,7 +163,7 @@ export default function CaptioningView({ videoRef, sourceType }: CaptioningViewP
     csvLink.href = csvUrl;
     csvLink.download = `${sessionId}_feedback.csv`;
     csvLink.click();
-    URL.revokeObjectURL(csvUrl);
+    setTimeout(() => URL.revokeObjectURL(csvUrl), 1000);
   }, []);
 
 
@@ -149,11 +177,16 @@ export default function CaptioningView({ videoRef, sourceType }: CaptioningViewP
               onClick={isRecording ? handleStopRecording : handleStartRecording}
               className={`px-6 py-3 ${isRecording ? 'bg-red-500/30' : 'bg-green-500/30'}`}
             >
-              {isRecording ? '⏹ Stop Recording' : '⏺ Start Recording'}
+              {isRecording ? '⏹ Stop Recording & Analysis' : '⏺ Start Recording'}
             </GlassButton>
             {isRecording && (
               <div className="mt-2 text-sm text-red-400">
-                Recording in progress...
+                Recording
+              </div>
+            )}
+            {!isRecording && !isLoopRunning && caption === "" && (
+              <div className="mt-2 text-sm text-gray-400">
+                Click to start recording and VLM analysis
               </div>
             )}
           </div>

@@ -94,8 +94,35 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
         throw new Error("Screen sharing not supported");
       }
 
-      const stream = await navigator.mediaDevices.getDisplayMedia(SCREEN_CONSTRAINTS);
-      onSourceSelected(stream, 'screen');
+      // Request screen sharing
+      const screenStream = await navigator.mediaDevices.getDisplayMedia(SCREEN_CONSTRAINTS);
+      
+      // Also request microphone permission (but don't fail if denied)
+      let combinedStream = screenStream;
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Create combined stream with screen video and microphone audio
+        combinedStream = new MediaStream();
+        
+        // Add video tracks from screen
+        screenStream.getVideoTracks().forEach(track => {
+          combinedStream.addTrack(track);
+        });
+        
+        // Add audio tracks from microphone
+        audioStream.getAudioTracks().forEach(track => {
+          combinedStream.addTrack(track);
+        });
+        
+        // Clean up original audio stream
+        audioStream.getTracks().forEach(track => track.stop());
+        
+      } catch (audioErr) {
+        // Microphone access denied or unavailable, continuing with screen only
+      }
+      
+      onSourceSelected(combinedStream, 'screen');
     } catch (err) {
       const errorInfo = getErrorInfo(err);
       setError(errorInfo);

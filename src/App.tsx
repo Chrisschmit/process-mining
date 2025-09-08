@@ -10,6 +10,7 @@ export default function App() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [sourceType, setSourceType] = useState<"screen" | "file" | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [userInfo, setUserInfo] = useState<{ name: string; function: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const handleSourceSelected = useCallback((stream: MediaStream, type: "screen" | "file") => {
@@ -18,7 +19,8 @@ export default function App() {
     setAppState("loading");
   }, []);
 
-  const handleStart = useCallback(() => {
+  const handleStart = useCallback((userData: { name: string; function: string }) => {
+    setUserInfo(userData);
     setAppState("source-selection");
   }, []);
 
@@ -100,7 +102,7 @@ export default function App() {
 
       {appState === "loading" && <LoadingScreen onComplete={handleLoadingComplete} />}
 
-      {appState === "captioning" && <CaptioningView videoRef={videoRef} sourceType={sourceType} />}
+      {appState === "captioning" && <CaptioningView videoRef={videoRef} sourceType={sourceType} userInfo={userInfo} />}
     </div>
   );
 }
