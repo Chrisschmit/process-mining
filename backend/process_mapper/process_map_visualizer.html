@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Process Map Visualizer</title>
+    <style>
+      body {
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+          background: #f8f9fa;
+      }
+      .container {
+          display: flex;
+          height: 100vh;
+      }
+      .sidebar {
+          width: 350px;
+          background: #ffffff;
+          border-right: 1px solid #e5e7eb;
+          padding: 24px;
+          overflow-y: auto;
+          color: #1f2937;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      }
+      .main {
+          flex: 1;
+          position: relative;
+          background: #f8f9fa;
+      }
+      .canvas {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: auto;
+          background:
+              radial-gradient(circle, #d1d5db 1px, transparent 1px);
+          background-size: 20px 20px;
+      }
+      .node {
+          position: absolute;
+          border-radius: 10px;
+          border: 2px solid;
+          padding: 15px;
+          min-width: 140px;
+          max-width: 200px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          cursor: move;
+          user-select: none;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+      }
+      .node-trigger,
+      .node-input,
+      .node-process,
+      .node-decision,
+      .node-output {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-color: #6c757d;
+          color: #495057;
+      }
+      .node-label {
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 4px;
+          line-height: 1.3;
+          word-break: break-word;
+      }
+      .node-tool {
+          font-size: 10px;
+          color: #6b7280;
+          margin-bottom: 6px;
+          font-style: italic;
+          border-bottom: 1px solid #e5e7eb;
+          padding-bottom: 4px;
+      }
+      .node-description {
+          font-size: 12px;
+          opacity: 0.8;
+          line-height: 1.4;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
+      }
+      .node-meta {
+          font-size: 10px;
+          opacity: 0.7;
+          margin-top: 6px;
+          display: flex;
+          justify-content: space-between;
+      }
+      .connection {
+          position: absolute;
+          pointer-events: none;
+      }
+      .connection-line {
+          stroke: #64748b;
+          stroke-width: 2;
+          fill: none;
+          marker-end: url(#arrowhead);
+      }
+      .connection-line.animated {
+          stroke-dasharray: 5,5;
+          animation: dash 1s linear infinite;
+      }
+      @keyframes dash {
+          to { stroke-dashoffset: -10; }
+      }
+      .textarea {
+          width: 100%;
+          height: 150px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          padding: 12px;
+          color: #1f2937;
+          font-family: 'Consolas', 'Monaco', monospace;
+          font-size: 12px;
+          resize: vertical;
+          transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+      }
+      .textarea::placeholder {
+          color: #9ca3af;
+      }
+      .textarea:focus {
+          outline: none;
+          border-color: #6b7280;
+          box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+      }
+      .button {
+          background: #374151;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 20px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          margin-right: 10px;
+          margin-bottom: 10px;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+      .button:hover {
+          background: #4b5563;
+          box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+      }
+      .button:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
+      }
+      .button:active {
+          background: #1f2937;
+          transform: translateY(0);
+      }
+      .button:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+          box-shadow: none;
+      }
+      .button:disabled:hover {
+          background: #9ca3af;
+          box-shadow: none;
+      }
+      .status {
+          background: #f3f4f6;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 16px;
+          font-size: 13px;
+          font-weight: 500;
+      }
+      .success {
+          background: #f0fdf4;
+          border-color: #bbf7d0;
+          color: #15803d;
+          border-left: 4px solid #22c55e;
+      }
+      .error {
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #dc2626;
+          border-left: 4px solid #ef4444;
+      }
+      .info {
+          background: #eff6ff;
+          border-color: #bfdbfe;
+          color: #2563eb;
+          border-left: 4px solid #3b82f6;
+      }
+      .metadata {
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin-top: 20px;
+      }
+      .metadata h3 {
+          margin: 0 0 12px 0;
+          font-size: 15px;
+          font-weight: 600;
+          color: #374151;
+      }
+      .metadata-item {
+          display: flex;
+          justify-content: space-between;
+          margin: 8px 0;
+          font-size: 13px;
+          color: #4b5563;
+      }
+      .node-count {
+          background: #f3f4f6;
+          border: 1px solid #d1d5db;
+          color: #374151;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+      }
+      .file-input {
+          display: none;
+      }
+      .file-label {
+          background: #6b7280;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 20px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          display: inline-block;
+          margin-right: 10px;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+      .file-label:hover {
+          background: #4b5563;
+          box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+      }
+      .file-label:focus-within {
+          box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
+      }
+      .controls {
+          position: absolute;
+          bottom: 20px;
+          left: 20px;
+          z-index: 100;
+      }
+      .controls button {
+          margin-right: 5px;
+          padding: 8px 16px;
+          font-size: 12px;
+      }
+      \n        /* Professional styling improvements */\n        h1, h2, h3 {\n            letter-spacing: -0.025em;\n        }\n        \n        .section {\n            margin-bottom: 24px;\n        }\n        \n        .section:last-child {\n            margin-bottom: 0;\n        }\n        \n        .controls button {\n            background: rgba(255, 255, 255, 0.95);\n            color: #374151;\n            border: 1px solid #d1d5db;\n            backdrop-filter: blur(8px);\n        }\n        .controls button:hover {\n            background: #ffffff;\n            color: #1f2937;\n        }\n
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1 style="margin: 0 0 24px 0; color: #1f2937; font-size: 24px; font-weight: 700; line-height: 1.2">
+          Process Map Visualizer
+        </h1>
+
+        <div id="status" class="status info">Ready to load process map...</div>
+
+        <div class="section">
+          <h2 style="margin: 0 0 12px 0; color: #374151; font-size: 16px; font-weight: 600">Process Map JSON</h2>
+          <textarea
+            id="jsonInput"
+            class="textarea"
+            placeholder="Paste your process map JSON here or load a file..."
+          ></textarea>
+        </div>
+
+        <div class="section">
+          <input id="file-input" type="file" accept=".json" class="file-input" />
+          <label for="file-input" class="file-label"> Load File </label>
+
+          <button class="button" onclick="loadSampleData()">Sample Data</button>
+        </div>
+
+        <div class="section">
+          <button class="button" onclick="loadProcessMap()">Load Process Map</button>
+          <button class="button" id="exportBtn" onclick="exportData()" disabled>Export</button>
+          <button class="button" onclick="clearData()">Clear</button>
+        </div>
+
+        <div class="metadata" id="metadata" style="display: none">
+          <div
+            id="processTitle"
+            style="
+              display: none;
+              margin-bottom: 16px;
+              padding: 12px;
+              background: #eff6ff;
+              border: 1px solid #bfdbfe;
+              border-radius: 8px;
+            "
+          >
+            <h3 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600">Process Workflow</h3>
+            <div id="processTitleText" style="color: #4b5563; font-size: 14px; font-weight: 500"></div>
+          </div>
+          <h3>Metadata</h3>
+          <div class="metadata-item">
+            <span>Session:</span>
+            <span id="sessionId">-</span>
+          </div>
+          <div class="metadata-item">
+            <span>Generated:</span>
+            <span id="generatedAt">-</span>
+          </div>
+          <div class="metadata-item">
+            <span>Duration:</span>
+            <span id="duration">-</span>
+          </div>
+          <div class="metadata-item">
+            <span>Tools:</span>
+            <span class="node-count" id="toolCount">0</span>
+          </div>
+          <div class="metadata-item">
+            <span>Steps:</span>
+            <span class="node-count" id="nodeCount">0</span>
+          </div>
+          <div class="metadata-item">
+            <span>Connections:</span>
+            <span class="node-count" id="edgeCount">0</span>
+          </div>
+          <div class="metadata-item" id="confidenceRow" style="display: none">
+            <span>Confidence:</span>
+            <span id="confidence">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="canvas" id="canvas">
+          <svg
+            id="connections"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none"
+          >
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Controls removed for cleaner interface -->
+      </div>
+    </div>
+
+    <script>
+      let currentWorkflow = null;
+      let nodePositions = {};
+
+      function showMessage(text, type = "info") {
+        const statusEl = document.getElementById("status");
+        statusEl.className = `status ${type}`;
+        statusEl.textContent = text;
+      }
+
+      function updateStats(nodes, edges, metadata = null) {
+        document.getElementById("nodeCount").textContent = nodes.length;
+        document.getElementById("edgeCount").textContent = edges.length;
+        document.getElementById("exportBtn").disabled = nodes.length === 0;
+
+        if (metadata) {
+          // Display process title if available
+          if (metadata.title) {
+            document.getElementById("processTitleText").textContent = metadata.title;
+            document.getElementById("processTitle").style.display = "block";
+          } else {
+            document.getElementById("processTitle").style.display = "none";
+          }
+
+          document.getElementById("sessionId").textContent = metadata.session_id || "-";
+          document.getElementById("generatedAt").textContent = metadata.generated_at
+            ? new Date(metadata.generated_at).toLocaleString()
+            : "-";
+          document.getElementById("duration").textContent = metadata.total_duration_ms
+            ? Math.floor(metadata.total_duration_ms / 1000) + "s"
+            : "-";
+          document.getElementById("toolCount").textContent = (metadata.tools_identified || metadata.tools || []).length;
+
+          if (metadata.confidence) {
+            document.getElementById("confidence").textContent = (metadata.confidence * 100).toFixed(1) + "%";
+            document.getElementById("confidenceRow").style.display = "flex";
+          } else {
+            document.getElementById("confidenceRow").style.display = "none";
+          }
+
+          document.getElementById("metadata").style.display = "block";
+        }
+      }
+
+      function loadProcessMap() {
+        const jsonText = document.getElementById("jsonInput").value.trim();
+        if (!jsonText) {
+          showMessage("Please enter process map JSON data", "error");
+          return;
+        }
+
+        try {
+          const data = JSON.parse(jsonText);
+          loadProcessMapData(data);
+        } catch (error) {
+          showMessage(`Invalid JSON: ${error.message}`, "error");
+        }
+      }
+
+      function loadProcessMapData(workflowData) {
+        try {
+          if (!workflowData.nodes || !Array.isArray(workflowData.nodes)) {
+            throw new Error("Invalid process map: missing or invalid nodes array");
+          }
+
+          currentWorkflow = workflowData;
+          renderProcessMap(workflowData);
+          updateStats(workflowData.nodes, workflowData.edges || [], workflowData.metadata);
+          showMessage(
+            `Successfully loaded ${workflowData.nodes.length} nodes and ${(workflowData.edges || []).length} edges`,
+            "success",
+          );
+        } catch (error) {
+          showMessage(`Error: ${error.message}`, "error");
+        }
+      }
+
+      function renderProcessMap(workflow) {
+        const canvas = document.getElementById("canvas");
+        const connectionsLayer = document.getElementById("connections");
+
+        // Clear existing content
+        const existingNodes = canvas.querySelectorAll(".node");
+        existingNodes.forEach((node) => node.remove());
+        connectionsLayer.innerHTML =
+          '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#64748b" /></marker></defs>';
+
+        // Clear node positions
+        nodePositions = {};
+
+        // Render nodes first
+        workflow.nodes.forEach((node) => {
+          const nodeEl = document.createElement("div");
+          nodeEl.className = `node node-${node.type}`;
+          nodeEl.id = `node-${node.id}`;
+          nodeEl.style.left = `${node.position.x}px`;
+          nodeEl.style.top = `${node.position.y}px`;
+
+          const metaHtml = node.timestamp_ms
+            ? `
+                    <div class="node-meta">
+                        <span>${Math.floor(node.timestamp_ms / 1000)}s</span>
+                    </div>
+                `
+            : "";
+
+          // New structure: task as headline, tool below, then detailed description
+          const toolInfo = node.data?.tool ? `<div class="node-tool">Tool: ${node.data.tool}</div>` : "";
+
+          nodeEl.innerHTML = `
+                    <div class="node-label">${node.data?.label || `Step ${node.id}`}</div>
+                    ${toolInfo}
+                    <div class="node-description">${node.data?.description || "No description provided"}</div>
+                    ${metaHtml}
+                `;
+
+          // Make node draggable
+          makeDraggable(nodeEl, node.id);
+
+          canvas.appendChild(nodeEl);
+
+          // Store position for connections (center of node)
+          nodePositions[node.id] = {
+            x: node.position.x + 90, // Center X (assuming 180px width)
+            y: node.position.y + 40, // Center Y
+          };
+        });
+
+        // Apply auto-layout automatically after rendering nodes
+        setTimeout(() => {
+          autoLayout();
+        }, 100); // Small delay to ensure DOM is ready
+      }
+
+      function makeDraggable(element, nodeId) {
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        element.style.cursor = "grab";
+        element.setAttribute("draggable", "false"); // Prevent HTML5 drag
+
+        function startDrag(e) {
+          isDragging = true;
+          element.style.cursor = "grabbing";
+
+          const rect = element.getBoundingClientRect();
+          const canvasRect = element.parentElement.getBoundingClientRect();
+
+          dragOffset.x = e.clientX - rect.left;
+          dragOffset.y = e.clientY - rect.top;
+
+          document.addEventListener("mousemove", drag);
+          document.addEventListener("mouseup", stopDrag);
+          e.preventDefault();
+        }
+
+        function drag(e) {
+          if (!isDragging) return;
+
+          const canvas = element.parentElement;
+          const canvasRect = canvas.getBoundingClientRect();
+
+          let newX = e.clientX - canvasRect.left - dragOffset.x;
+          let newY = e.clientY - canvasRect.top - dragOffset.y;
+
+          // Constrain to canvas bounds
+          const nodeWidth = 180;
+          const nodeHeight = 80;
+          newX = Math.max(0, Math.min(newX, canvas.offsetWidth - nodeWidth));
+          newY = Math.max(0, Math.min(newY, canvas.offsetHeight - nodeHeight));
+
+          element.style.left = `${newX}px`;
+          element.style.top = `${newY}px`;
+
+          // Update stored position for connections
+          nodePositions[nodeId] = {
+            x: newX + 90, // Center X
+            y: newY + 40, // Center Y
+          };
+
+          // Redraw connections
+          redrawConnections();
+
+          e.preventDefault();
+        }
+
+        function stopDrag(e) {
+          isDragging = false;
+          element.style.cursor = "grab";
+
+          document.removeEventListener("mousemove", drag);
+          document.removeEventListener("mouseup", stopDrag);
+        }
+
+        element.addEventListener("mousedown", startDrag);
+      }
+
+      function redrawConnections() {
+        if (!currentWorkflow || !currentWorkflow.edges) return;
+
+        const connectionsLayer = document.getElementById("connections");
+        // Clear existing connections but keep the defs
+        const defs = connectionsLayer.querySelector("defs");
+        connectionsLayer.innerHTML = "";
+        if (defs) connectionsLayer.appendChild(defs);
+
+        // Redraw all connections
+        currentWorkflow.edges.forEach((edge) => {
+          drawConnection(edge);
+        });
+      }
+
+      function autoLayout() {
+        if (!currentWorkflow || !currentWorkflow.nodes) return;
+
+        const canvas = document.getElementById("canvas");
+        const canvasWidth = canvas.offsetWidth;
+        const nodeWidth = 200;
+        const nodeHeight = 120;
+        const horizontalSpacing = 120; // Increased from 60
+        const verticalSpacing = 150; // Increased from 80
+
+        // Try different layouts based on number of nodes
+        const nodeCount = currentWorkflow.nodes.length;
+
+        if (nodeCount <= 3) {
+          // Vertical layout for few nodes
+          layoutVertical();
+        } else if (nodeCount <= 9) {
+          // Grid layout for medium number of nodes
+          layoutGrid();
+        } else {
+          // Hierarchical layout for many nodes
+          layoutHierarchical();
+        }
+
+        function layoutVertical() {
+          const startX = (canvasWidth - nodeWidth) / 2;
+          let currentY = 80; // Increased from 50
+
+          currentWorkflow.nodes.forEach((node, index) => {
+            const nodeEl = document.getElementById(`node-${node.id}`);
+            if (nodeEl) {
+              nodeEl.style.left = `${startX}px`;
+              nodeEl.style.top = `${currentY}px`;
+
+              // Update stored position
+              nodePositions[node.id] = {
+                x: startX + nodeWidth / 2,
+                y: currentY + nodeHeight / 2,
+              };
+
+              currentY += nodeHeight + verticalSpacing;
+            }
+          });
+        }
+
+        function layoutGrid() {
+          const cols = Math.ceil(Math.sqrt(nodeCount));
+          const rows = Math.ceil(nodeCount / cols);
+
+          const totalWidth = cols * nodeWidth + (cols - 1) * horizontalSpacing;
+          const totalHeight = rows * nodeHeight + (rows - 1) * verticalSpacing;
+
+          const startX = Math.max(40, (canvasWidth - totalWidth) / 2); // Increased margin
+          const startY = 80; // Increased from 50
+
+          currentWorkflow.nodes.forEach((node, index) => {
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+
+            const x = startX + col * (nodeWidth + horizontalSpacing);
+            const y = startY + row * (nodeHeight + verticalSpacing);
+
+            const nodeEl = document.getElementById(`node-${node.id}`);
+            if (nodeEl) {
+              nodeEl.style.left = `${x}px`;
+              nodeEl.style.top = `${y}px`;
+
+              // Update stored position
+              nodePositions[node.id] = {
+                x: x + nodeWidth / 2,
+                y: y + nodeHeight / 2,
+              };
+            }
+          });
+        }
+
+        function layoutHierarchical() {
+          // For many nodes, use a hierarchical tree-like layout
+          const levels = Math.ceil(nodeCount / 4);
+          const nodesPerLevel = Math.ceil(nodeCount / levels);
+
+          let currentLevel = 0;
+          let nodesInCurrentLevel = 0;
+          let currentY = 80; // Increased from 50
+
+          currentWorkflow.nodes.forEach((node, index) => {
+            if (nodesInCurrentLevel >= nodesPerLevel) {
+              currentLevel++;
+              nodesInCurrentLevel = 0;
+              currentY += nodeHeight + verticalSpacing;
+            }
+
+            const remainingNodesInLevel = Math.min(nodesPerLevel, nodeCount - currentLevel * nodesPerLevel);
+            const levelWidth = remainingNodesInLevel * nodeWidth + (remainingNodesInLevel - 1) * horizontalSpacing;
+            const startX = Math.max(40, (canvasWidth - levelWidth) / 2); // Increased margin
+
+            const x = startX + nodesInCurrentLevel * (nodeWidth + horizontalSpacing);
+
+            const nodeEl = document.getElementById(`node-${node.id}`);
+            if (nodeEl) {
+              nodeEl.style.left = `${x}px`;
+              nodeEl.style.top = `${currentY}px`;
+
+              // Update stored position
+              nodePositions[node.id] = {
+                x: x + nodeWidth / 2,
+                y: currentY + nodeHeight / 2,
+              };
+            }
+
+            nodesInCurrentLevel++;
+          });
+        }
+
+        // Redraw connections after layout
+        redrawConnections();
+        // Don't show message for automatic layout - keep it clean
+      }
+
+      function drawConnection(edge) {
+        const sourcePos = nodePositions[edge.source];
+        const targetPos = nodePositions[edge.target];
+
+        if (!sourcePos || !targetPos) {
+          return;
+        }
+
+        const svg = document.getElementById("connections");
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+        line.setAttribute("x1", sourcePos.x);
+        line.setAttribute("y1", sourcePos.y);
+        line.setAttribute("x2", targetPos.x);
+        line.setAttribute("y2", targetPos.y);
+        line.setAttribute("class", "connection-line");
+        line.setAttribute("stroke", "#64748b");
+        line.setAttribute("stroke-width", "2");
+        line.setAttribute("marker-end", "url(#arrowhead)");
+
+        if (edge.animated !== false) {
+          line.setAttribute("stroke-dasharray", "5,5");
+          line.style.animation = "dash 1s linear infinite";
+        }
+
+        svg.appendChild(line);
+      }
+
+      function handleFileLoad(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById("jsonInput").value = e.target.result;
+            showMessage(`Loaded file: ${file.name}`, "info");
+          };
+          reader.readAsText(file);
+        }
+      }
+
+      function clearData() {
+        const canvas = document.getElementById("canvas");
+        const existingNodes = canvas.querySelectorAll(".node");
+        existingNodes.forEach((node) => node.remove());
+
+        const connectionsLayer = document.getElementById("connections");
+        connectionsLayer.innerHTML =
+          '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#64748b" /></marker></defs>';
+
+        document.getElementById("jsonInput").value = "";
+        document.getElementById("metadata").style.display = "none";
+        document.getElementById("exportBtn").disabled = true;
+        currentWorkflow = null;
+        nodePositions = {};
+        showMessage("Cleared all data", "info");
+      }
+
+      function exportData() {
+        if (!currentWorkflow) return;
+
+        const blob = new Blob([JSON.stringify(currentWorkflow, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `process_map_${new Date().toISOString().slice(0, 19)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showMessage("Process map exported successfully", "success");
+      }
+
+      function fitToView() {
+        if (!currentWorkflow || !currentWorkflow.nodes.length) return;
+
+        const canvas = document.getElementById("canvas");
+        const nodes = currentWorkflow.nodes;
+
+        // Calculate bounds
+        let minX = Math.min(...nodes.map((n) => n.position.x));
+        let minY = Math.min(...nodes.map((n) => n.position.y));
+        let maxX = Math.max(...nodes.map((n) => n.position.x + 180));
+        let maxY = Math.max(...nodes.map((n) => n.position.y + 80));
+
+        // Add padding
+        minX -= 50;
+        minY -= 50;
+        maxX += 50;
+        maxY += 50;
+
+        // Scroll to show all nodes
+        canvas.scrollLeft = Math.max(0, minX);
+        canvas.scrollTop = Math.max(0, minY);
+      }
+
+      function resetZoom() {
+        const canvas = document.getElementById("canvas");
+        canvas.scrollLeft = 0;
+        canvas.scrollTop = 0;
+      }
+
+      function exportPNG() {
+        showMessage("PNG export feature coming soon!", "info");
+      }
+
+      function loadSampleData() {
+        const sampleData = {
+          nodes: [
+            {
+              id: "1",
+              type: "trigger",
+              position: { x: 100, y: 50 },
+              data: {
+                label: "Email Received",
+                description: "RFQ Process email with invoice attachment received in Gmail",
+              },
+              timestamp_ms: 13000,
+              tool_context: "Gmail",
+            },
+            {
+              id: "2",
+              type: "input",
+              position: { x: 100, y: 200 },
+              data: {
+                label: "Review Invoice",
+                description: "User opens and examines the invoice attachment",
+              },
+              timestamp_ms: 16000,
+              tool_context: "Gmail",
+            },
+            {
+              id: "3",
+              type: "process",
+              position: { x: 100, y: 350 },
+              data: {
+                label: "Download File",
+                description: "User downloads invoice attachment to local system",
+              },
+              timestamp_ms: 31000,
+              tool_context: "Chrome",
+            },
+            {
+              id: "4",
+              type: "process",
+              position: { x: 100, y: 500 },
+              data: {
+                label: "Create Record",
+                description: "User creates new invoice record in Notion with invoice details",
+              },
+              timestamp_ms: 57000,
+              tool_context: "Notion",
+            },
+            {
+              id: "5",
+              type: "output",
+              position: { x: 100, y: 650 },
+              data: {
+                label: "Send Reply",
+                description: "User sends acknowledgment reply email",
+              },
+              timestamp_ms: 125000,
+              tool_context: "Gmail",
+            },
+          ],
+          edges: [
+            { id: "e1-2", source: "1", target: "2", animated: true },
+            { id: "e2-3", source: "2", target: "3", animated: true },
+            { id: "e3-4", source: "3", target: "4", animated: true },
+            { id: "e4-5", source: "4", target: "5", animated: true },
+          ],
+          metadata: {
+            session_id: "demo_session",
+            generated_at: new Date().toISOString(),
+            total_duration_ms: 128000,
+            tools_identified: ["Gmail", "Chrome", "Finder", "Notion"],
+          },
+        };
+
+        document.getElementById("jsonInput").value = JSON.stringify(sampleData, null, 2);
+        showMessage("Sample data loaded - click Load Process Map to visualize", "info");
+      }
+
+      // Event listeners
+      document.getElementById("file-input").addEventListener("change", handleFileLoad);
+
+      // Make loadProcessMapData available globally for the agent
+      window.loadProcessMapData = loadProcessMapData;
+    </script>
+  </body>
+</html>
