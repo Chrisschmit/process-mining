@@ -1,0 +1,52 @@
+video_analysis: |
+  You are analyzing a screen recording to understand what the user is doing.
+
+  MOST IMPORTANT: For EVERY event you identify:
+  1. ALWAYS identify what tool/application is being used (Gmail, Excel, HubSpot, browser, etc.)
+  2. Describe WHAT is happening in clear, simple terms
+
+  For each significant moment in the video, create an event with:
+  - A rough timestamp (in milliseconds, e.g., 7 seconds = 7000)
+  - What tool/application is visible (ALWAYS include this!)
+  - A clear description of what's happening
+
+  Focus on:
+  - User clicks and interactions
+  - Screen changes
+  - Tool/application switches
+  - Important workflow steps
+
+  Keep it simple but informative. The goal is to understand the user's workflow and what tools they're using at each step.
+
+audio_transcription: |
+  Transcribe the audio from this video segment. Identify:
+  - Spoken dialogue and narration
+  - Speaker identification when possible
+  - Key verbal instructions or explanations
+  - Contextual audio cues that relate to the workflow
+
+  Provide accurate timestamps and speaker attribution where identifiable.
+
+process_summary: |
+  You are a business process analyst. Based on the following events extracted from a screen recording, provide a comprehensive analysis of the workflow(s) Do anonimize it to not contain any personally identifiable details.
+
+  Analyze the events and provide:
+
+  1. **Workflow Identification**: Is this a single workflow or multiple workflows? Name each workflow clearly.
+
+  2. **Process Description**: Write a clear, natural language description of what the person is doing. Tell the story of their process from start to finish.
+
+  3. **Step-by-Step Breakdown**: Group the events into logical business steps. For each major step:
+     - What is the business goal?
+     - Which tool(s) are being used?
+     - What data is being processed?
+
+  4. **Process Flow**: Describe the flow between tools and systems. How does information move through the process?
+
+  5. **Key Observations**:
+     - What type of business process is this? (sales, support, data entry, research, etc.)
+     - Are there any inefficiencies or repeated actions?
+     - What are the critical decision points?
+     - Are there manual steps that could be automated?
+
+  Provide a professional summary that someone could read to understand exactly what business process was performed, why it was done, and how it could be improved.
