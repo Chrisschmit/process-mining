@@ -7,7 +7,6 @@ export interface GlassEffectProps {
   highlight?: string;
 }
 
-
 export interface Position {
   x: number;
   y: number;

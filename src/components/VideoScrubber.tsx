@@ -22,7 +22,7 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
     }
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
   const updateProgress = useCallback(() => {
@@ -47,18 +47,24 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
     }
   }, [videoRef]);
 
-  const handleSeek = useCallback((newTime: number) => {
-    const video = videoRef.current;
-    if (video && !isNaN(newTime)) {
-      video.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  }, [videoRef]);
+  const handleSeek = useCallback(
+    (newTime: number) => {
+      const video = videoRef.current;
+      if (video && !isNaN(newTime)) {
+        video.currentTime = newTime;
+        setCurrentTime(newTime);
+      }
+    },
+    [videoRef],
+  );
 
-  const handleScrubberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(event.target.value);
-    handleSeek(newTime);
-  }, [handleSeek]);
+  const handleScrubberChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newTime = parseFloat(event.target.value);
+      handleSeek(newTime);
+    },
+    [handleSeek],
+  );
 
   const handleMouseDown = useCallback(() => {
     setIsDragging(true);
@@ -86,10 +92,10 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
 
     // Update immediately if metadata is already loaded
     if (video.readyState >= 1) {
@@ -97,18 +103,18 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
     }
 
     return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
     };
   }, [videoRef, updateProgress]);
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mouseup", handleMouseUp);
       return () => {
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
     }
   }, [isDragging, handleMouseUp]);
@@ -117,23 +123,19 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
     return null;
   }
 
-  const progressPercentage = duration > 0 && isFinite(duration) && isFinite(currentTime) 
-    ? Math.min((currentTime / duration) * 100, 100) 
-    : 0;
+  const progressPercentage =
+    duration > 0 && isFinite(duration) && isFinite(currentTime) ? Math.min((currentTime / duration) * 100, 100) : 0;
 
   return (
-    <div 
+    <div
       className={`absolute bottom-4 left-4 right-4 z-[200] transition-opacity duration-300 ${
-        isHovered || isDragging ? 'opacity-100' : 'opacity-90'
+        isHovered || isDragging ? "opacity-100" : "opacity-90"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      style={{ pointerEvents: 'auto' }}
+      style={{ pointerEvents: "auto" }}
     >
-      <GlassContainer
-        bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
-        className="rounded-lg px-4 py-3 shadow-lg"
-      >
+      <GlassContainer bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG} className="rounded-lg px-4 py-3 shadow-lg">
         <div className="flex items-center space-x-4">
           {/* Play/Pause Button */}
           <GlassButton
@@ -143,19 +145,25 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
           >
             {isPlaying ? (
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zM14 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zM14 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
               </svg>
             ) : (
               <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a.5.5 0 01.531-.024L15.5 8.5a.5.5 0 010 .872l-8.702 5.069a.5.5 0 01-.765-.436V3.455z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M6.267 3.455a.5.5 0 01.531-.024L15.5 8.5a.5.5 0 010 .872l-8.702 5.069a.5.5 0 01-.765-.436V3.455z"
+                  clipRule="evenodd"
+                />
               </svg>
             )}
           </GlassButton>
 
           {/* Current Time */}
-          <div className="text-white text-sm font-mono min-w-[3.5rem]">
-            {formatTime(currentTime)}
-          </div>
+          <div className="text-white text-sm font-mono min-w-[3.5rem]">{formatTime(currentTime)}</div>
 
           {/* Timeline Scrubber */}
           <div className="flex-1 relative px-2">
@@ -172,11 +180,11 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
                          [&::-webkit-slider-track]:bg-gray-600/50
                          [&::-webkit-slider-track]:rounded-lg
                          [&::-webkit-slider-track]:h-1.5
-                         [&::-webkit-slider-thumb]:appearance-none 
-                         [&::-webkit-slider-thumb]:w-4 
-                         [&::-webkit-slider-thumb]:h-4 
-                         [&::-webkit-slider-thumb]:rounded-full 
-                         [&::-webkit-slider-thumb]:bg-white 
+                         [&::-webkit-slider-thumb]:appearance-none
+                         [&::-webkit-slider-thumb]:w-4
+                         [&::-webkit-slider-thumb]:h-4
+                         [&::-webkit-slider-thumb]:rounded-full
+                         [&::-webkit-slider-thumb]:bg-white
                          [&::-webkit-slider-thumb]:shadow-lg
                          [&::-webkit-slider-thumb]:cursor-pointer
                          [&::-webkit-slider-thumb]:border-2
@@ -186,10 +194,10 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
                          [&::-moz-range-track]:rounded-lg
                          [&::-moz-range-track]:h-1.5
                          [&::-moz-range-track]:border-0
-                         [&::-moz-range-thumb]:w-4 
-                         [&::-moz-range-thumb]:h-4 
-                         [&::-moz-range-thumb]:rounded-full 
-                         [&::-moz-range-thumb]:bg-white 
+                         [&::-moz-range-thumb]:w-4
+                         [&::-moz-range-thumb]:h-4
+                         [&::-moz-range-thumb]:rounded-full
+                         [&::-moz-range-thumb]:bg-white
                          [&::-moz-range-thumb]:border-2
                          [&::-moz-range-thumb]:border-blue-500
                          [&::-moz-range-thumb]:cursor-pointer
@@ -197,19 +205,17 @@ export default function VideoScrubber({ videoRef, isVisible }: VideoScrubberProp
                          hover:[&::-webkit-slider-thumb]:scale-110
                          hover:[&::-moz-range-thumb]:scale-110"
               style={{
-                background: `linear-gradient(to right, 
-                  #3b82f6 0%, 
-                  #3b82f6 ${progressPercentage}%, 
-                  rgba(75, 85, 99, 0.3) ${progressPercentage}%, 
-                  rgba(75, 85, 99, 0.3) 100%)`
+                background: `linear-gradient(to right,
+                  #3b82f6 0%,
+                  #3b82f6 ${progressPercentage}%,
+                  rgba(75, 85, 99, 0.3) ${progressPercentage}%,
+                  rgba(75, 85, 99, 0.3) 100%)`,
               }}
             />
           </div>
 
           {/* Duration */}
-          <div className="text-white text-sm font-mono min-w-[3.5rem] text-right">
-            {formatTime(duration)}
-          </div>
+          <div className="text-white text-sm font-mono min-w-[3.5rem] text-right">{formatTime(duration)}</div>
         </div>
       </GlassContainer>
     </div>

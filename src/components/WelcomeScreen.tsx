@@ -16,7 +16,7 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       setShowInputs(true);
       return;
     }
-    
+
     if (name.trim() && userFunction.trim()) {
       onStart({ name: name.trim(), function: userFunction.trim() });
     }
@@ -33,79 +33,21 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           <div className="p-8 text-center">
             <h1 className="text-5xl font-bold text-gray-100 mb-4">Showcase your expertise in everyday workflows</h1>
             <p className="text-gray-300">
-            Work as you normally do. This tool helps you capture your know-how and spoken explanations, then turns them into a clear step-by-step summary. Use it to highlight your expertise, make training smoother, and ensure your contribution is visible and valued.            </p>
+              Work as you normally do. This tool helps you capture your know-how and spoken explanations, then turns
+              them into a clear step-by-step summary. Use it to highlight your expertise, make training smoother, and
+              ensure your contribution is visible and valued.{" "}
+            </p>
           </div>
         </GlassContainer>
-
-
-        {/* How It Works Card
-        <GlassContainer
-          className="rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200"
-          role="region"
-          aria-labelledby="how-it-works-title"
-        >
-          <div className="p-6">
-            <h2 id="how-it-works-title" className="text-lg font-semibold text-gray-200 mb-4 text-center">
-              How it works:
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mt-0.5 flex-shrink-0">
-                  1
-                </div>
-                <p className="text-gray-300">
-                  You are about to load{" "}
-                  <a
-                    href="https://huggingface.co/onnx-community/FastVLM-0.5B-ONNX"
-                    className="text-blue-400 underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    FastVLM-0.5B
-                  </a>
-                  , a powerful multimodal model optimized for in-browser inference.
-                </p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mt-0.5 flex-shrink-0">
-                  2
-                </div>
-                <p className="text-gray-300">
-                  Everything runs entirely in your browser with{" "}
-                  <a
-                    href="https://github.com/huggingface/transformers.js"
-                    className="text-blue-400 underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <HfIcon className="inline-flex w-7 h-7 pointer-events-none" />
-                    Transformers.js
-                  </a>{" "}
-                  and ONNX Runtime Web, meaning no data is sent to a server. It can even run offline!
-                </p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mt-0.5 flex-shrink-0">
-                  3
-                </div>
-                <p className="text-gray-300">Get started by clicking the button below.</p>
-              </div>
-            </div>
-          </div>
-        </GlassContainer> */}
 
         {/* User Information Form */}
         {showInputs && (
           <GlassContainer className="rounded-2xl shadow-2xl">
             <div className="p-6 space-y-4">
-              <h3 className="text-xl font-semibold text-gray-200 text-center mb-6">
-                Please provide your information
-              </h3>
+              <h3 className="text-xl font-semibold text-gray-200 text-center mb-6">Please provide your information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Your Name *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Your Name *</label>
                   <input
                     type="text"
                     value={name}
@@ -116,9 +58,7 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Your Function/Role *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Your Function/Role *</label>
                   <input
                     type="text"
                     value={userFunction}
@@ -141,23 +81,18 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           <GlassButton
             onClick={handleStartClick}
             className={`px-8 py-4 rounded-2xl transition-all duration-200 ${
-              showInputs && (!name.trim() || !userFunction.trim())
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:scale-105'
+              showInputs && (!name.trim() || !userFunction.trim()) ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
             }`}
             disabled={showInputs && (!name.trim() || !userFunction.trim())}
             aria-label="Start live captioning with AI model"
           >
             <span className="font-semibold text-lg">
-              {!showInputs ? 'Start my Session' : 'Continue to Video Source'}
+              {!showInputs ? "Start my Session" : "Continue to Video Source"}
             </span>
           </GlassButton>
 
           <p className="text-sm text-gray-400 opacity-80 text-center">
-            {!showInputs 
-              ? 'AI model will load when you click start'
-              : 'Please fill in both fields to continue'
-            }
+            {!showInputs ? "AI model will load when you click start" : "Please fill in both fields to continue"}
           </p>
         </div>
       </div>

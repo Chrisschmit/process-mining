@@ -10,7 +10,6 @@ const ERROR_TYPES = {
   GENERAL: "general",
 } as const;
 
-
 const SCREEN_CONSTRAINTS = {
   video: {
     width: { ideal: 1920, max: 1920 },
@@ -25,10 +24,10 @@ interface ErrorInfo {
 }
 
 interface InputSourceDialogProps {
-  onSourceSelected: (stream: MediaStream, sourceType: 'screen' | 'file') => void;
+  onSourceSelected: (stream: MediaStream, sourceType: "screen" | "file") => void;
 }
 
-type InputSource = 'screen' | 'file';
+type InputSource = "screen" | "file";
 
 export default function InputSourceDialog({ onSourceSelected }: InputSourceDialogProps) {
   const [selectedSource, setSelectedSource] = useState<InputSource | null>(null);
@@ -84,7 +83,6 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
     };
   };
 
-
   const requestScreenAccess = useCallback(async () => {
     setIsRequesting(true);
     setError(null);
@@ -96,33 +94,49 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
 
       // Request screen sharing
       const screenStream = await navigator.mediaDevices.getDisplayMedia(SCREEN_CONSTRAINTS);
-      
+      console.log(
+        "Screen stream created:",
+        screenStream.getTracks().map((t) => `${t.kind}:${t.label}`),
+      );
+
       // Also request microphone permission (but don't fail if denied)
       let combinedStream = screenStream;
       try {
+        console.log("Requesting microphone access for screen recording...");
         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
+        console.log(
+          "Microphone stream created:",
+          audioStream.getTracks().map((t) => `${t.kind}:${t.label}`),
+        );
+
         // Create combined stream with screen video and microphone audio
         combinedStream = new MediaStream();
-        
+
         // Add video tracks from screen
-        screenStream.getVideoTracks().forEach(track => {
+        screenStream.getVideoTracks().forEach((track) => {
+          console.log(`Adding video track: ${track.label}, readyState: ${track.readyState}`);
           combinedStream.addTrack(track);
         });
-        
+
         // Add audio tracks from microphone
-        audioStream.getAudioTracks().forEach(track => {
+        audioStream.getAudioTracks().forEach((track) => {
+          console.log(`Adding audio track: ${track.label}, readyState: ${track.readyState}`);
           combinedStream.addTrack(track);
         });
-        
-        // Clean up original audio stream
-        audioStream.getTracks().forEach(track => track.stop());
-        
+
+        console.log(
+          "Combined stream created with tracks:",
+          combinedStream.getTracks().map((t) => `${t.kind}:${t.label}`),
+        );
+
+        // Don't stop the audio tracks here - they're now part of combinedStream
+        // audioStream.getTracks().forEach(track => track.stop()); // REMOVED
       } catch (audioErr) {
-        // Microphone access denied or unavailable, continuing with screen only
+        console.warn("Microphone access denied or unavailable:", audioErr);
+        console.log("Continuing with screen-only recording");
       }
-      
-      onSourceSelected(combinedStream, 'screen');
+
+      onSourceSelected(combinedStream, "screen");
     } catch (err) {
       const errorInfo = getErrorInfo(err);
       setError(errorInfo);
@@ -132,40 +146,51 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
     }
   }, [onSourceSelected]);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    // Create a video element that will be used directly instead of canvas stream
-    const videoUrl = URL.createObjectURL(file);
-    
-    // Create a mock stream that signals this is a file source
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const mockStream = canvas.captureStream(1);
-    
-    // Store the video file URL on the stream for later use
-    (mockStream as any).videoFileUrl = videoUrl;
-    
-    onSourceSelected(mockStream, 'file');
-  }, [onSourceSelected]);
+      // Create a video element that will be used directly instead of canvas stream
+      const videoUrl = URL.createObjectURL(file);
+
+      // Create a mock stream that signals this is a file source
+      const canvas = document.createElement("canvas");
+      canvas.width = 1;
+      canvas.height = 1;
+      const mockStream = canvas.captureStream(1);
+
+      // Store the video file URL on the stream for later use
+      (mockStream as MediaStream & { videoFileUrl?: string }).videoFileUrl = videoUrl;
+
+      onSourceSelected(mockStream, "file");
+    },
+    [onSourceSelected],
+  );
 
   const renderIcon = (source: InputSource) => {
     const iconClass = "w-8 h-8";
-    
+
     switch (source) {
-      case 'screen':
+      case "screen":
         return (
           <svg className={`${iconClass} text-green-400`} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 1v6h10V5H5z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 1v6h10V5H5z"
+              clipRule="evenodd"
+            />
             <path d="M10 15a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM7 14a1 1 0 100 2h2a1 1 0 100-2H7z" />
           </svg>
         );
-      case 'file':
+      case "file":
         return (
           <svg className={`${iconClass} text-purple-400`} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1zM3 7a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V7zM4 9h12v2H4V9z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M3 17a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1zM3 7a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V7zM4 9h12v2H4V9z"
+              clipRule="evenodd"
+            />
           </svg>
         );
     }
@@ -178,7 +203,7 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
           <div className="p-8 text-center space-y-6">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto" />
             <h2 className="text-2xl font-bold text-gray-100">
-              {selectedSource === 'screen' ? 'Requesting Screen Access' : 'Loading Video File'}
+              {selectedSource === "screen" ? "Requesting Screen Access" : "Loading Video File"}
             </h2>
             <p className="text-gray-400">Please allow access in your browser to continue...</p>
           </div>
@@ -194,20 +219,20 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
           <div className="p-8 text-center space-y-6">
             <h2 className="text-3xl font-bold text-gray-100">Choose Input Source</h2>
             <p className="text-gray-400">Select how you want to provide video for captioning</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
               {/* Screen Recording Option */}
-              <GlassContainer 
+              <GlassContainer
                 className="rounded-2xl p-6 cursor-pointer hover:scale-105 transition-transform duration-200"
                 bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
                 onClick={() => {
-                  setSelectedSource('screen');
+                  setSelectedSource("screen");
                   requestScreenAccess();
                 }}
               >
                 <div className="flex flex-col items-center space-y-3">
                   <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                    {renderIcon('screen')}
+                    {renderIcon("screen")}
                   </div>
                   <h3 className="text-lg font-semibold text-gray-200">Screen</h3>
                   <p className="text-sm text-gray-400 text-center">Record and caption your screen</p>
@@ -215,22 +240,17 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
               </GlassContainer>
 
               {/* Video File Option */}
-              <GlassContainer 
+              <GlassContainer
                 className="rounded-2xl p-6 cursor-pointer hover:scale-105 transition-transform duration-200"
                 bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
               >
                 <label className="flex flex-col items-center space-y-3 cursor-pointer">
                   <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
-                    {renderIcon('file')}
+                    {renderIcon("file")}
                   </div>
                   <h3 className="text-lg font-semibold text-gray-200">Video File</h3>
                   <p className="text-sm text-gray-400 text-center">Upload a video file to caption</p>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
+                  <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} />
                 </label>
               </GlassContainer>
             </div>
@@ -239,19 +259,20 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
 
         {/* Error Display */}
         {error && (
-          <GlassContainer 
-            className="rounded-2xl shadow-2xl"
-            bgColor={GLASS_EFFECTS.COLORS.ERROR_BG}
-          >
+          <GlassContainer className="rounded-2xl shadow-2xl" bgColor={GLASS_EFFECTS.COLORS.ERROR_BG}>
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-100 mb-2">Access Failed</h3>
               <p className="text-red-400 mb-4">{error.message}</p>
-              
+
               <GlassButton
                 onClick={() => {
                   setError(null);

@@ -29,7 +29,7 @@ export default function App() {
   }, []);
 
   const setupVideo = useCallback((video: HTMLVideoElement, stream: MediaStream) => {
-    const videoFileUrl = (stream as any).videoFileUrl as string | undefined;
+    const videoFileUrl = (stream as MediaStream & { videoFileUrl?: string }).videoFileUrl;
 
     if (videoFileUrl) {
       video.srcObject = null;

@@ -4,7 +4,7 @@ export interface FeedbackEntry {
   frame_number: number;
 }
 
-import { TIMING } from '../constants';
+import { TIMING } from "../constants";
 
 const FRAME_CAPTURE_DELAY = TIMING.FRAME_CAPTURE_DELAY;
 
@@ -13,7 +13,7 @@ export class RecordingManager {
   private recordedChunks: Blob[] = [];
   private feedbackEntries: FeedbackEntry[] = [];
   private startTimestamp: number = 0;
-  private sessionId: string = '';
+  private sessionId: string = "";
 
   constructor() {
     this.reset();
@@ -23,7 +23,7 @@ export class RecordingManager {
     this.recordedChunks = [];
     this.feedbackEntries = [];
     this.startTimestamp = 0;
-    this.sessionId = '';
+    this.sessionId = "";
   }
 
   async startRecording(stream: MediaStream, userInfo?: { name: string; function: string }) {
@@ -32,40 +32,60 @@ export class RecordingManager {
     this.sessionId = this.generateSessionId(userInfo);
 
     // Check if stream already has audio (from InputSourceDialog)
-    const hasAudio = stream.getAudioTracks().length > 0;
-    
+    const audioTracks = stream.getAudioTracks();
+    const hasAudio = audioTracks.length > 0;
+
+    console.log(`RecordingManager: Stream has ${audioTracks.length} audio track(s)`);
+    audioTracks.forEach((track, i) => {
+      console.log(`Audio track ${i}: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+    });
+
     let combinedStream = stream;
     if (!hasAudio) {
       // Only request microphone if not already present
+      console.log("No audio tracks found, requesting microphone access...");
       try {
         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioTracks = audioStream.getAudioTracks();
-        
+        const newAudioTracks = audioStream.getAudioTracks();
+
         // Create a new stream combining video from screen and audio from microphone
         combinedStream = new MediaStream();
-        
+
         // Add all video tracks from screen capture
-        stream.getVideoTracks().forEach(track => {
+        stream.getVideoTracks().forEach((track) => {
           combinedStream.addTrack(track);
         });
-        
+
         // Add audio track from microphone
-        audioTracks.forEach(track => {
+        newAudioTracks.forEach((track) => {
           combinedStream.addTrack(track);
         });
-        
-        console.log('Microphone audio added to recording');
+
+        console.log("Microphone audio added to recording");
+
+        // Clean up the temporary audio stream
+        audioStream.getTracks().forEach((track) => {
+          if (!combinedStream.getTracks().includes(track)) {
+            track.stop();
+          }
+        });
       } catch (error) {
-        console.warn('Could not access microphone, recording without audio:', error);
+        console.warn("Could not access microphone, recording without audio:", error);
       }
     } else {
-      console.log('Using existing audio track from stream');
+      console.log("Using existing audio tracks from stream");
+      // Ensure audio tracks are enabled and active
+      audioTracks.forEach((track) => {
+        if (track.readyState === "ended") {
+          console.warn(`Audio track ${track.label} is ended, may need fresh microphone access`);
+        }
+      });
     }
 
     const options = {
-      mimeType: 'video/webm;codecs=vp8,opus',
+      mimeType: "video/webm;codecs=vp8,opus",
       videoBitsPerSecond: 2500000,
-      audioBitsPerSecond: 128000
+      audioBitsPerSecond: 128000,
     };
 
     this.mediaRecorder = new MediaRecorder(combinedStream, options);
@@ -83,12 +103,12 @@ export class RecordingManager {
   stopRecording(): Promise<{ videoBlob: Blob; csvContent: string; sessionId: string }> {
     return new Promise((resolve) => {
       if (!this.mediaRecorder) {
-        resolve({ videoBlob: new Blob(), csvContent: '', sessionId: '' });
+        resolve({ videoBlob: new Blob(), csvContent: "", sessionId: "" });
         return;
       }
 
       this.mediaRecorder.onstop = () => {
-        const videoBlob = new Blob(this.recordedChunks, { type: 'video/webm' });
+        const videoBlob = new Blob(this.recordedChunks, { type: "video/webm" });
         const csvContent = this.generateCSV();
         resolve({ videoBlob, csvContent, sessionId: this.sessionId });
       };
@@ -107,54 +127,52 @@ export class RecordingManager {
     this.feedbackEntries.push({
       timestamp,
       feedback_text: feedbackText,
-      frame_number: frameNumber
+      frame_number: frameNumber,
     });
-    
+
     // Log feedback entry for debugging (remove in production)
   }
 
   private generateSessionId(userInfo?: { name: string; function: string }): string {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
     let sessionId = `recording_session_${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
-    
+
     if (userInfo) {
       // Generate initials from name (first letter of each word)
       const initials = userInfo.name
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase())
-        .join('')
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("")
         .substring(0, 3); // Max 3 characters
-      
+
       // Clean function name (remove spaces, special chars, max 10 chars)
-      const functionClean = userInfo.function
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .substring(0, 10);
-      
+      const functionClean = userInfo.function.replace(/[^a-zA-Z0-9]/g, "").substring(0, 10);
+
       sessionId = `${initials}_${functionClean}_${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
     }
-    
+
     return sessionId;
   }
 
   private generateCSV(): string {
-    let csv = 'timestamp_ms,feedback_text,frame_number\n';
-    
+    let csv = "timestamp_ms,feedback_text,frame_number\n";
+
     for (const entry of this.feedbackEntries) {
       const escapedFeedback = `"${entry.feedback_text.replace(/"/g, '""')}"`;
       csv += `${entry.timestamp},${escapedFeedback},${entry.frame_number}\n`;
     }
-    
+
     return csv;
   }
 
   isRecording(): boolean {
-    return this.mediaRecorder?.state === 'recording';
+    return this.mediaRecorder?.state === "recording";
   }
 }

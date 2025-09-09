@@ -16,7 +16,7 @@ export const LAYOUT = {
   MARGINS: {
     DEFAULT: 20,
     BOTTOM: 20,
-    BOTTOM_WITH_SCRUBBER:100,
+    BOTTOM_WITH_SCRUBBER: 100,
   },
   DIMENSIONS: {
     PROMPT_WIDTH: 420,
@@ -36,7 +36,7 @@ export const TIMING = {
 
 const DEFAULT_PROMPT = `As an expert Senior IT Consultant specializing in workflow analysis and mapping, your task is to observe a series of screen recordings of a back-office knowledge worker. Your goal is to provide a highly detailed analysis of what you see on the screen to enable automated process mining.`;
 
-export const PROMPTS = {  
+export const PROMPTS = {
   default: DEFAULT_PROMPT,
   placeholder: DEFAULT_PROMPT,
 
