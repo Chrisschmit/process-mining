@@ -78,6 +78,7 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
   const [currentPrompt, setCurrentPrompt] = useState<string>(PROMPTS.default);
   const [error, setError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [isMicEnabled, setIsMicEnabled] = useState<boolean>(true);
   const recordingManagerRef = useRef<RecordingManager>(new RecordingManager());
   const lastLoggedCaptionRef = useRef<string>("");
   const lastLogTimeRef = useRef<number>(0);
@@ -165,18 +166,66 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
     setTimeout(() => URL.revokeObjectURL(csvUrl), 1000);
   }, []);
 
+  const handleChangeScreenShare = useCallback(async () => {
+    try {
+      // Get new screen share stream
+      const newStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: isMicEnabled,
+      });
+
+      // Replace video track in current stream
+      if (videoRef.current?.srcObject) {
+        const currentStream = videoRef.current.srcObject as MediaStream;
+        const oldVideoTrack = currentStream.getVideoTracks()[0];
+        const newVideoTrack = newStream.getVideoTracks()[0];
+
+        if (oldVideoTrack && newVideoTrack) {
+          currentStream.removeTrack(oldVideoTrack);
+          currentStream.addTrack(newVideoTrack);
+          oldVideoTrack.stop();
+        }
+
+        // Update recording manager's stream if recording
+        if (isRecording && recordingManagerRef.current.isRecording()) {
+          // Note: This will require updating RecordingManager to support stream replacement
+          console.log("Screen share changed while recording");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to change screen share:", error);
+      setError(error instanceof Error ? error.message : "Failed to change screen share");
+    }
+  }, [videoRef, isMicEnabled, isRecording]);
+
+  const handleToggleMic = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      const audioTracks = stream.getAudioTracks();
+      
+      audioTracks.forEach(track => {
+        track.enabled = !isMicEnabled;
+      });
+      
+      setIsMicEnabled(!isMicEnabled);
+    }
+  }, [videoRef, isMicEnabled]);
+
   return (
     <div className="absolute inset-0 text-white">
       <div className="r-full h-full">
         {/* Recording Controls - Only show for screen recording */}
         {sourceType === "screen" && (
           <div className="absolute top-4 left-4 z-[200]">
-            <GlassButton
-              onClick={isRecording ? handleStopRecording : handleStartRecording}
-              className={`px-6 py-3 ${isRecording ? "bg-red-500/30" : "bg-green-500/30"}`}
-            >
-              {isRecording ? "⏹ Stop Recording & Analysis" : "⏺ Start Recording"}
-            </GlassButton>
+            <div className="shadow-lg">
+              <GlassButton
+                onClick={isRecording ? handleStopRecording : handleStartRecording}
+                className="px-6 py-3"
+                bgColor={isRecording ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)"}
+              >
+                {isRecording ? "Stop Recording & Analysis" : "Start Recording"}
+              </GlassButton>
+            </div>
             {isRecording && <div className="mt-2 text-sm text-red-400">Recording</div>}
             {!isRecording && !isLoopRunning && caption === "" && (
               <div className="mt-2 text-sm text-gray-400">Click to start recording and VLM analysis</div>
@@ -184,16 +233,63 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
           </div>
         )}
 
+        {/* Screen Share & Mic Controls - Only show for screen recording */}
+        {sourceType === "screen" && (
+          <div className="absolute top-4 right-4 z-[200] flex gap-2">
+            {/* Change Screen Share Button */}
+            <div className="shadow-lg">
+              <GlassButton
+                onClick={handleChangeScreenShare}
+                className="p-3"
+                bgColor="rgba(59, 130, 246, 0.1)"
+                aria-label="Change screen share"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth={2} />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M12 13V7m0 0l-3 3m3-3l3 3" />
+                </svg>
+              </GlassButton>
+            </div>
+
+            {/* Microphone Toggle Button */}
+            <div className="shadow-lg">
+              <GlassButton
+                onClick={handleToggleMic}
+                className="p-3"
+                bgColor={isMicEnabled ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)"}
+                aria-label={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
+              >
+                {isMicEnabled ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                )}
+              </GlassButton>
+            </div>
+          </div>
+        )}
+
         {/* Video Scrubber - Only show for video files */}
         <VideoScrubber videoRef={videoRef} isVisible={sourceType === "file"} />
 
-        {/* Draggable Prompt Input - Bottom Left (above scrubber) */}
+        {/* Draggable Prompt Input - Bottom Left (above scrubber) - HIDDEN but functionality preserved */}
+        {/* 
         <DraggableContainer
           initialPosition={sourceType === "file" ? { x: 20, y: window.innerHeight - 200 } : "bottom-left"}
           className="z-[150]"
         >
           <PromptInput onPromptChange={handlePromptChange} />
         </DraggableContainer>
+        */}
 
         {/* Draggable Live Caption - Bottom Right (above scrubber) */}
         <DraggableContainer

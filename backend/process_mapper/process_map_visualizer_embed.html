@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Process Map Visualizer (Embed)</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: transparent;
+      }
+
+      /* Fill the host container */
+      .main {
+        position: absolute;
+        inset: 0;
+      }
+      .canvas {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: auto;
+        background-color: #f3f4f6; /* light grey */
+        background-image: radial-gradient(circle, rgba(148,163,184,0.25) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      /* Graph root that holds both nodes and connections, so we can scale/pan together */
+      .graph-root {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: 0 0;
+      }
+      .node {
+        position: absolute;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 12px;
+        min-width: 140px;
+        max-width: 220px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        cursor: move;
+        user-select: none;
+        background: #ffffff;
+        color: #1f2937;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      .node-label { font-weight: 600; font-size: 13px; margin-bottom: 4px; line-height: 1.3; color: #111827; }
+      .node-tool { font-size: 10px; color: #6b7280; margin-bottom: 6px; font-style: italic; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+      .node-description { font-size: 12px; color: #374151; opacity: 0.9; line-height: 1.35; }
+      .node-meta { font-size: 10px; color: #6b7280; opacity: 0.9; margin-top: 6px; display: flex; justify-content: space-between; }
+      /* collapsed state */
+      .node.collapsed { padding: 10px; }
+      .node.collapsed .node-description, .node.collapsed .node-tool { display: none; }
+
+      svg.connections { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+      .connection-line { stroke: #94a3b8; stroke-width: 2; fill: none; }
+      .connection-line.animated { stroke-dasharray: 5,5; animation: dash 1s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset: -10; } }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="canvas" id="canvas">
+        <div class="graph-root" id="graphRoot">
+          <svg class="connections" id="connections">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentWorkflow = null;
+      let nodePositions = {};
+      let scale = 1;
+      let offsetX = 0; // pan offset (in device px)
+      let offsetY = 0;
+      let contentBounds = { minX: 0, minY: 0, width: 0, height: 0 };
+      let collapsed = true; // start in compact mode so nodes are shorter
+
+      function computeBounds(nodes) {
+        if (!nodes || !nodes.length) return { minX: 0, minY: 0, width: 0, height: 0 };
+        const NODE_W = 200, NODE_H = 120;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        nodes.forEach((n) => {
+          const x1 = n.position.x, y1 = n.position.y;
+          const x2 = x1 + NODE_W, y2 = y1 + NODE_H;
+          if (x1 < minX) minX = x1; if (y1 < minY) minY = y1;
+          if (x2 > maxX) maxX = x2; if (y2 > maxY) maxY = y2;
+        });
+        const pad = 60;
+        return { minX: minX - pad, minY: minY - pad, width: (maxX - minX) + pad*2, height: (maxY - minY) + pad*2 };
+      }
+
+      function applyTransform() {
+        if (!currentWorkflow || !currentWorkflow.nodes) return;
+        const canvas = document.getElementById('canvas');
+        const graphRoot = document.getElementById('graphRoot');
+        const bounds = contentBounds;
+        graphRoot.style.width = bounds.width + 'px';
+        graphRoot.style.height = bounds.height + 'px';
+        // Translate so the content's minX/minY is at origin, then apply pan offset, then scale
+        graphRoot.style.transform = 'translate(' + (offsetX - bounds.minX) + 'px,' + (offsetY - bounds.minY) + 'px) scale(' + scale + ')';
+        // Center if no explicit pan
+        if (offsetX === 0 && offsetY === 0) {
+          const cx = Math.max(0, (canvas.clientWidth - bounds.width * scale) / 2);
+          const cy = Math.max(0, (canvas.clientHeight - bounds.height * scale) / 2);
+          graphRoot.style.left = cx + 'px';
+          graphRoot.style.top = cy + 'px';
+        } else {
+          graphRoot.style.left = '0px';
+          graphRoot.style.top = '0px';
+        }
+      }
+
+      function fitToContainer() {
+        if (!currentWorkflow || !currentWorkflow.nodes) return;
+        const canvas = document.getElementById('canvas');
+        contentBounds = computeBounds(currentWorkflow.nodes);
+        if (contentBounds.width === 0 || contentBounds.height === 0) return;
+        // Fit a bit tighter to make nodes comfortably readable in embeds
+        const s = Math.min(canvas.clientWidth / contentBounds.width, canvas.clientHeight / contentBounds.height);
+        scale = Math.min(1.2, Math.max(0.6, s * 0.95));
+        offsetX = 0;
+        offsetY = 0;
+        applyTransform();
+      }
+
+      function loadProcessMapData(workflowData) {
+        try {
+          if (!workflowData.nodes || !Array.isArray(workflowData.nodes)) {
+            throw new Error('Invalid process map: missing or invalid nodes array');
+          }
+
+          currentWorkflow = workflowData;
+          renderProcessMap(workflowData);
+          fitToContainer();
+        } catch (error) {
+          // swallow in embed
+          console.error(error);
+        }
+      }
+
+      function renderProcessMap(workflow) {
+        const canvas = document.getElementById('canvas');
+        const graphRoot = document.getElementById('graphRoot');
+        const connectionsLayer = document.getElementById('connections');
+
+        // Clear existing
+        graphRoot.querySelectorAll('.node').forEach((n) => n.remove());
+        connectionsLayer.innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#64748b" /></marker></defs>';
+        nodePositions = {};
+
+        // Render nodes
+        workflow.nodes.forEach((node) => {
+          const nodeEl = document.createElement('div');
+          nodeEl.className = 'node node-' + node.type;
+          nodeEl.id = 'node-' + node.id;
+          nodeEl.style.left = node.position.x + 'px';
+          nodeEl.style.top = node.position.y + 'px';
+
+          const toolInfo = node.data?.tool ? '<div class="node-tool">Tool: ' + node.data.tool + '</div>' : '';
+          const metaHtml = node.timestamp_ms ? ('<div class="node-meta"><span>' + Math.floor(node.timestamp_ms / 1000) + 's</span></div>') : '';
+          nodeEl.innerHTML = '<div class="node-label">' + (node.data?.label || ('Step ' + node.id)) + '</div>' + toolInfo + '<div class="node-description">' + (node.data?.description || 'No description provided') + '</div>' + metaHtml;
+          if (collapsed) nodeEl.classList.add('collapsed');
+          nodeEl.addEventListener('dblclick', () => {
+            nodeEl.classList.toggle('collapsed');
+          });
+
+          makeDraggable(nodeEl, node.id);
+          graphRoot.appendChild(nodeEl);
+
+          nodePositions[node.id] = { x: node.position.x + 90, y: node.position.y + 40 };
+        });
+
+        // Auto layout like original
+        setTimeout(() => { autoLayout(); contentBounds = computeBounds(currentWorkflow.nodes); fitToContainer(); }, 50);
+      }
+
+      function makeDraggable(element, nodeId) {
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        element.style.cursor = 'grab';
+        element.setAttribute('draggable', 'false');
+
+        function startDrag(e) {
+          isDragging = true;
+          element.style.cursor = 'grabbing';
+          const rect = element.getBoundingClientRect();
+          const canvasRect = element.parentElement.getBoundingClientRect();
+          dragOffset.x = e.clientX - rect.left;
+          dragOffset.y = e.clientY - rect.top;
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('mouseup', stopDrag);
+          e.preventDefault();
+        }
+        function drag(e) {
+          if (!isDragging) return;
+          const canvas = element.parentElement;
+          const canvasRect = canvas.getBoundingClientRect();
+          let newX = (e.clientX - canvasRect.left - dragOffset.x) / scale;
+          let newY = (e.clientY - canvasRect.top - dragOffset.y) / scale;
+          const nodeWidth = 200, nodeHeight = 120;
+          newX = Math.max(0, Math.min(newX, canvas.offsetWidth/scale - nodeWidth));
+          newY = Math.max(0, Math.min(newY, canvas.offsetHeight/scale - nodeHeight));
+          element.style.left = newX + 'px';
+          element.style.top = newY + 'px';
+          nodePositions[nodeId] = { x: newX + 90, y: newY + 40 };
+          redrawConnections();
+          e.preventDefault();
+        }
+        function stopDrag() {
+          isDragging = false;
+          element.style.cursor = 'grab';
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('mouseup', stopDrag);
+        }
+        element.addEventListener('mousedown', startDrag);
+      }
+
+      function redrawConnections() {
+        if (!currentWorkflow || !currentWorkflow.edges) return;
+        const connectionsLayer = document.getElementById('connections');
+        const defs = connectionsLayer.querySelector('defs');
+        connectionsLayer.innerHTML = '';
+        if (defs) connectionsLayer.appendChild(defs);
+        currentWorkflow.edges.forEach((edge) => drawConnection(edge));
+      }
+
+      function autoLayout() {
+        if (!currentWorkflow || !currentWorkflow.nodes) return;
+        const canvas = document.getElementById('canvas');
+        const nodeWidth = 200, nodeHeight = 120;
+        const horizontalSpacing = 120, verticalSpacing = 150;
+
+        const nodeCount = currentWorkflow.nodes.length;
+        if (nodeCount <= 3) layoutVertical(); else if (nodeCount <= 9) layoutGrid(); else layoutHierarchical();
+
+        function layoutVertical() {
+          const startX = (canvas.clientWidth/scale - nodeWidth) / 2;
+          let currentY = 80;
+          currentWorkflow.nodes.forEach((node) => {
+            const nodeEl = document.getElementById('node-' + node.id);
+            if (nodeEl) {
+              nodeEl.style.left = startX + 'px';
+              nodeEl.style.top = currentY + 'px';
+              nodePositions[node.id] = { x: startX + nodeWidth/2, y: currentY + nodeHeight/2 };
+              currentY += nodeHeight + verticalSpacing;
+            }
+          });
+          redrawConnections();
+        }
+        function layoutGrid() {
+          const cols = Math.ceil(Math.sqrt(nodeCount));
+          const rows = Math.ceil(nodeCount / cols);
+          const totalWidth = cols * nodeWidth + (cols - 1) * horizontalSpacing;
+          const startX = 40;
+          const startY = 80;
+          currentWorkflow.nodes.forEach((node, index) => {
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+            const x = startX + col * (nodeWidth + horizontalSpacing);
+            const y = startY + row * (nodeHeight + verticalSpacing);
+            const nodeEl = document.getElementById('node-' + node.id);
+            if (nodeEl) {
+              nodeEl.style.left = x + 'px';
+              nodeEl.style.top = y + 'px';
+              nodePositions[node.id] = { x: x + nodeWidth/2, y: y + nodeHeight/2 };
+            }
+          });
+          redrawConnections();
+        }
+        function layoutHierarchical() {
+          const levels = Math.ceil(nodeCount / 4);
+          const nodesPerLevel = Math.ceil(nodeCount / levels);
+          let currentLevel = 0, nodesInCurrentLevel = 0, currentY = 80;
+          currentWorkflow.nodes.forEach((node, index) => {
+            if (nodesInCurrentLevel >= nodesPerLevel) { currentLevel++; nodesInCurrentLevel = 0; currentY += nodeHeight + verticalSpacing; }
+            const remaining = Math.min(nodesPerLevel, nodeCount - currentLevel * nodesPerLevel);
+            const levelWidth = remaining * nodeWidth + (remaining - 1) * horizontalSpacing;
+            const startX = Math.max(40, (canvas.clientWidth/scale - levelWidth) / 2);
+            const x = startX + nodesInCurrentLevel * (nodeWidth + horizontalSpacing);
+            const nodeEl = document.getElementById('node-' + node.id);
+            if (nodeEl) {
+              nodeEl.style.left = x + 'px';
+              nodeEl.style.top = currentY + 'px';
+              nodePositions[node.id] = { x: x + nodeWidth/2, y: currentY + nodeHeight/2 };
+            }
+            nodesInCurrentLevel++;
+          });
+          redrawConnections();
+        }
+      }
+
+      function drawConnection(edge) {
+        const sourcePos = nodePositions[edge.source];
+        const targetPos = nodePositions[edge.target];
+        if (!sourcePos || !targetPos) return;
+        const svg = document.getElementById('connections');
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', sourcePos.x);
+        line.setAttribute('y1', sourcePos.y);
+        line.setAttribute('x2', targetPos.x);
+        line.setAttribute('y2', targetPos.y);
+        line.setAttribute('class', 'connection-line');
+        line.setAttribute('stroke', '#64748b');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('marker-end', 'url(#arrowhead)');
+        if (edge.animated !== false) {
+          line.setAttribute('stroke-dasharray', '5,5');
+          line.style.animation = 'dash 1s linear infinite';
+        }
+        svg.appendChild(line);
+      }
+
+      // Zoom (wheel) and fit behaviors
+      (function initZoom() {
+        const canvas = document.getElementById('canvas');
+        canvas.addEventListener('wheel', (e) => {
+          // Support trackpad pinch (ctrlKey true) and regular wheel zoom
+          const zooming = e.ctrlKey || e.metaKey || e.altKey || true;
+          if (!zooming) return;
+          e.preventDefault();
+          const rect = canvas.getBoundingClientRect();
+          const cursorX = e.clientX - rect.left;
+          const cursorY = e.clientY - rect.top;
+
+          const prevScale = scale;
+          const zoomFactor = Math.exp(-e.deltaY * 0.0015);
+          scale = Math.max(0.2, Math.min(3, scale * zoomFactor));
+
+          // Adjust pan so zoom centers around cursor
+          const bounds = contentBounds;
+          const graphWidthScaledPrev = bounds.width * prevScale;
+          const graphHeightScaledPrev = bounds.height * prevScale;
+          const graphWidthScaled = bounds.width * scale;
+          const graphHeightScaled = bounds.height * scale;
+
+          const dx = (cursorX - offsetX) / prevScale;
+          const dy = (cursorY - offsetY) / prevScale;
+          offsetX = cursorX - dx * scale;
+          offsetY = cursorY - dy * scale;
+
+          // Clamp pan so content stays somewhat visible
+          const minOffsetX = -graphWidthScaled + 40; // small margin
+          const minOffsetY = -graphHeightScaled + 40;
+          const maxOffsetX = rect.width - 40;
+          const maxOffsetY = rect.height - 40;
+          offsetX = Math.min(maxOffsetX, Math.max(minOffsetX, offsetX));
+          offsetY = Math.min(maxOffsetY, Math.max(minOffsetY, offsetY));
+
+          applyTransform();
+        }, { passive: false });
+
+        // Double-click to reset fit
+        canvas.addEventListener('dblclick', () => fitToContainer());
+      })();
+
+      window.addEventListener('resize', () => fitToContainer());
+      // Expose the loader for host page
+      window.loadProcessMapData = loadProcessMapData;
+    </script>
+  </body>
+  </html>
+
+

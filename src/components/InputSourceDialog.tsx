@@ -213,12 +213,12 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
   }
 
   return (
-    <div className="absolute inset-0 text-white flex items-center justify-center p-8">
+    <div className="absolute inset-0 flex items-center justify-center p-8">
       <div className="max-w-2xl w-full space-y-6">
         <GlassContainer className="rounded-3xl shadow-2xl">
           <div className="p-8 text-center space-y-6">
-            <h2 className="text-3xl font-bold text-gray-100">Choose Input Source</h2>
-            <p className="text-gray-400">Select how you want to provide video for captioning</p>
+            <h2 className="text-3xl font-bold text-gray-900">Choose Input Source</h2>
+            <p className="text-gray-600">Select how you want to provide video for captioning</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
               {/* Screen Recording Option */}
@@ -234,8 +234,8 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
                   <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
                     {renderIcon("screen")}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-200">Screen</h3>
-                  <p className="text-sm text-gray-400 text-center">Record and caption your screen</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Screen</h3>
+                  <p className="text-sm text-gray-600 text-center">Record and caption your screen</p>
                 </div>
               </GlassContainer>
 
@@ -248,8 +248,8 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
                   <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
                     {renderIcon("file")}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-200">Video File</h3>
-                  <p className="text-sm text-gray-400 text-center">Upload a video file to caption</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Video File</h3>
+                  <p className="text-sm text-gray-600 text-center">Upload a video file to caption</p>
                   <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} />
                 </label>
               </GlassContainer>
@@ -270,8 +270,8 @@ export default function InputSourceDialog({ onSourceSelected }: InputSourceDialo
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-100 mb-2">Access Failed</h3>
-              <p className="text-red-400 mb-4">{error.message}</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Access Failed</h3>
+              <p className="text-red-600 mb-4">{error.message}</p>
 
               <GlassButton
                 onClick={() => {

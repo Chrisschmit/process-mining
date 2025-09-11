@@ -16,8 +16,8 @@ interface GlassContainerProps extends GlassEffectProps {
 export default function GlassContainer({
   children,
   className = "",
-  bgColor = "rgba(0, 0, 0, 0.25)",
-  highlight = "rgba(255, 255, 255, 0.15)",
+  bgColor = "hsla(0, 0%, 100%, 0.8)",
+  highlight = "hsla(210, 40%, 98%, 0.3)",
   onClick,
   onMouseDown,
   role,
@@ -59,7 +59,7 @@ export default function GlassContainer({
         {
           "--bg-color": bgColor,
           "--highlight": highlight,
-          "--text": "#ffffff",
+          "--text": "hsl(222.2 84% 4.9%)",
           ...style,
         } as React.CSSProperties
       }

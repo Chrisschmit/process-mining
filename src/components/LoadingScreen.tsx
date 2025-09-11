@@ -42,6 +42,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
             setProgress(20);
           } else if (message.includes("Model loaded")) {
             setProgress(80);
+          } else if (message.includes("Loading failed, retrying")) {
+            setProgress(Math.max(progress - 5, 5)); // Slightly decrease progress on retry
           }
         });
 
@@ -53,7 +55,22 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         onComplete();
       } catch (error) {
         console.error("Error loading model:", error);
-        setCurrentStep(`Error loading model: ${error instanceof Error ? error.message : String(error)}`);
+        
+        // Provide user-friendly error messages
+        let errorMessage = "Unknown error occurred";
+        if (error instanceof Error) {
+          if (error.message.includes("Failed to fetch") || error.message.includes("ERR_NETWORK_CHANGED")) {
+            errorMessage = "Network connection issue. Please check your internet connection and try again.";
+          } else if (error.message.includes("timeout")) {
+            errorMessage = "Model loading timed out. The servers may be busy - please try again.";
+          } else if (error.message.includes("WebGPU")) {
+            errorMessage = "WebGPU not supported. Please use a compatible browser (Chrome/Edge) with WebGPU enabled.";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
+        setCurrentStep(`Error: ${errorMessage}`);
         setIsError(true);
       }
     };
@@ -71,7 +88,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   }, [isLoaded, hasStartedLoading, onComplete]);
 
   return (
-    <div className="absolute inset-0 text-white flex items-center justify-center p-8" style={{ opacity: 1 }}>
+    <div className="absolute inset-0 flex items-center justify-center p-8" style={{ opacity: 1 }}>
       <GlassContainer
         className="max-w-md w-full rounded-3xl shadow-2xl"
         bgColor={isError ? GLASS_EFFECTS.COLORS.ERROR_BG : GLASS_EFFECTS.COLORS.DEFAULT_BG}
@@ -94,25 +111,36 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               )}
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-100">{isError ? "Loading Failed" : "Loading AI Model"}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{isError ? "Loading Failed" : "Loading AI Model"}</h2>
 
-            <p className={`${isError ? "text-red-400" : "text-gray-400"}`}>{currentStep}</p>
+            <p className={`${isError ? "text-red-600" : "text-gray-600"}`}>{currentStep}</p>
           </div>
 
           {!isError && (
             <div className="space-y-2">
-              <div className="w-full bg-gray-800/50 rounded-full h-3 overflow-hidden backdrop-blur-sm border border-gray-700/30">
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-500">{Math.round(progress)}% complete</p>
+              <p className="text-sm text-gray-600">{Math.round(progress)}% complete</p>
             </div>
           )}
 
           {isError && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
+              <button
+                onClick={() => {
+                  setIsError(false);
+                  setHasStartedLoading(false);
+                  setProgress(0);
+                  setCurrentStep("Initializing...");
+                }}
+                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg text-white font-medium transition-colors mr-2"
+              >
+                Try Again
+              </button>
               <button
                 onClick={() => window.location.reload()}
                 className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition-colors"

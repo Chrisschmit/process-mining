@@ -1,0 +1,518 @@
+{
+  "nodes": [
+    {
+      "id": "step_1",
+      "type": "trigger",
+      "position": {
+        "x": 200,
+        "y": 50
+      },
+      "data": {
+        "label": "Read email",
+        "description": "User accessed an email in Gmail, initiating the review process to understand its content and determine the appropriate next action based on the emails subject and sender.",
+        "tool": "Gmail"
+      },
+      "timestamp_ms": 7000,
+      "confidence_score": 0.8,
+      "tool_context": "Gmail"
+    },
+    {
+      "id": "step_2",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 300
+      },
+      "data": {
+        "label": "Open webpage",
+        "description": "User initiated access to LinkedIn via a new browser tab, thereby establishing a connection to a professional networking platform to facilitate business development or research activities.",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 24000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_3",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 550
+      },
+      "data": {
+        "label": "Search LinkedIn",
+        "description": "User initiated a LinkedIn search for Breuer Bass to identify and locate potential contacts or information related to this individual for business networking or research purposes.  The search levera...",
+        "tool": "LinkedIn"
+      },
+      "timestamp_ms": 27000,
+      "confidence_score": 0.8,
+      "tool_context": "LinkedIn"
+    },
+    {
+      "id": "step_4",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 800
+      },
+      "data": {
+        "label": "View LinkedIn profile",
+        "description": "User accessed Breuer Basss LinkedIn profile to research their professional background and experience, gathering information relevant to potential business collaborations or networking opportunities...",
+        "tool": "LinkedIn"
+      },
+      "timestamp_ms": 30000,
+      "confidence_score": 0.8,
+      "tool_context": "LinkedIn"
+    },
+    {
+      "id": "step_5",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 1050
+      },
+      "data": {
+        "label": "View Decagon LinkedIn",
+        "description": "User successfully accessed Decagons LinkedIn company page to gather information about the company, its services, and potential employment opportunities, facilitating further research and potential ...",
+        "tool": "LinkedIn"
+      },
+      "timestamp_ms": 40000,
+      "confidence_score": 0.8,
+      "tool_context": "LinkedIn"
+    },
+    {
+      "id": "step_6",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 1300
+      },
+      "data": {
+        "label": "Browser Search",
+        "description": "User initiated a search for information on decagon by opening a new browser tab and entering the search term into Google, thereby beginning the research process to gather relevant information about...",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 51000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_7",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 1550
+      },
+      "data": {
+        "label": "Visit Decagon website",
+        "description": "User successfully accessed Decagons website, initiating the process of gathering information about Decagons services and offerings.  This action represents the first step in potentially becoming a ...",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 55000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_8",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 1800
+      },
+      "data": {
+        "label": "Browser Search",
+        "description": "User initiated a search for hubspot on Google via a new browser tab to research and potentially identify a suitable marketing or sales platform for their business needs.",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 101000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_9",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 2050
+      },
+      "data": {
+        "label": "Access HubSpot",
+        "description": "User initiated a HubSpot login attempt, accessing the platform to manage marketing and sales activities, by navigating to the HubSpot website and entering their credentials in the provided login fi...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 107000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_10",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 2300
+      },
+      "data": {
+        "label": "Open webpage",
+        "description": "User accessed LinkedIn via a new browser tab to initiate professional networking activities, potentially for business development, lead generation, or information gathering.",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 110000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_11",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 2550
+      },
+      "data": {
+        "label": "HubSpot login",
+        "description": "User successfully accessed the HubSpot platform, initiating the workflow to manage and analyze marketing and sales data, granting access to all relevant dashboards and tools.",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 130000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_12",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 2800
+      },
+      "data": {
+        "label": "View contacts",
+        "description": "User accessed the HubSpot contacts database to begin reviewing and potentially managing customer information, navigating directly to the contacts section via the main navigation menu.  This action ...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 148000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_13",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 3050
+      },
+      "data": {
+        "label": "Create contact",
+        "description": "User created a new contact record in HubSpot, inputting relevant information such as name, company, and contact details to establish a new prospect within the CRM system and facilitate future engag...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 152000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_14",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 3300
+      },
+      "data": {
+        "label": "Return to Gmail",
+        "description": "User returned to the Gmail interface to resume processing email correspondence, ensuring timely response to customer inquiries and maintenance of ongoing business communications.",
+        "tool": "Gmail"
+      },
+      "timestamp_ms": 155000,
+      "confidence_score": 0.8,
+      "tool_context": "Gmail"
+    },
+    {
+      "id": "step_15",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 3550
+      },
+      "data": {
+        "label": "Draft email reply",
+        "description": "User initiated a response to a communication by drafting a reply email in Gmail, composing the message content to address the recipients inquiry and convey the necessary information or requested ac...",
+        "tool": "Gmail"
+      },
+      "timestamp_ms": 156000,
+      "confidence_score": 0.8,
+      "tool_context": "Gmail"
+    },
+    {
+      "id": "step_16",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 3800
+      },
+      "data": {
+        "label": "Return to HubSpot",
+        "description": "User returned to the HubSpot platform to resume working on sales and marketing tasks, ensuring continued progress on lead management, campaign performance monitoring, or other relevant activities w...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 200000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_17",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 4050
+      },
+      "data": {
+        "label": "Create HubSpot deal",
+        "description": "User created a new deal in HubSpot, initiating the sales process for a prospective customer by inputting details such as contact information, deal stage, and estimated revenue, thus formally tracki...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 211000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    },
+    {
+      "id": "step_18",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 4300
+      },
+      "data": {
+        "label": "Send Slack message",
+        "description": "User initiated communication with a colleague or team by composing and sending a message in Slack, facilitating efficient internal collaboration and information sharing.",
+        "tool": "Slack"
+      },
+      "timestamp_ms": 252000,
+      "confidence_score": 0.8,
+      "tool_context": "Slack"
+    },
+    {
+      "id": "step_19",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 4550
+      },
+      "data": {
+        "label": "Send email",
+        "description": "User successfully sent the email, completing the communication and initiating the next step in the business process, thereby ensuring timely delivery of information or request to the intended recip...",
+        "tool": "Gmail"
+      },
+      "timestamp_ms": 270000,
+      "confidence_score": 0.8,
+      "tool_context": "Gmail"
+    },
+    {
+      "id": "step_20",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 4800
+      },
+      "data": {
+        "label": "View Notion database",
+        "description": "User accessed a Notion database to review existing data, potentially searching or filtering entries to locate specific information relevant to their current task, thereby gaining access to the nece...",
+        "tool": "Notion"
+      },
+      "timestamp_ms": 287000,
+      "confidence_score": 0.8,
+      "tool_context": "Notion"
+    },
+    {
+      "id": "step_21",
+      "type": "output",
+      "position": {
+        "x": 200,
+        "y": 5050
+      },
+      "data": {
+        "label": "Open Notion page",
+        "description": "User accessed a specific Notion page, initiating review of existing project information or commencing creation of new content relevant to their task, thus facilitating progress on the current proje...",
+        "tool": "Notion"
+      },
+      "timestamp_ms": 303000,
+      "confidence_score": 0.8,
+      "tool_context": "Notion"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_step_1_to_step_2",
+      "source": "step_1",
+      "target": "step_2",
+      "animated": true,
+      "label": "Switch to Browser",
+      "condition": null
+    },
+    {
+      "id": "edge_step_2_to_step_3",
+      "source": "step_2",
+      "target": "step_3",
+      "animated": true,
+      "label": "Switch to LinkedIn",
+      "condition": null
+    },
+    {
+      "id": "edge_step_3_to_step_4",
+      "source": "step_3",
+      "target": "step_4",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_4_to_step_5",
+      "source": "step_4",
+      "target": "step_5",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_5_to_step_6",
+      "source": "step_5",
+      "target": "step_6",
+      "animated": true,
+      "label": "Switch to Browser",
+      "condition": null
+    },
+    {
+      "id": "edge_step_6_to_step_7",
+      "source": "step_6",
+      "target": "step_7",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_7_to_step_8",
+      "source": "step_7",
+      "target": "step_8",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_8_to_step_9",
+      "source": "step_8",
+      "target": "step_9",
+      "animated": true,
+      "label": "Switch to HubSpot",
+      "condition": null
+    },
+    {
+      "id": "edge_step_9_to_step_10",
+      "source": "step_9",
+      "target": "step_10",
+      "animated": true,
+      "label": "Switch to Browser",
+      "condition": null
+    },
+    {
+      "id": "edge_step_10_to_step_11",
+      "source": "step_10",
+      "target": "step_11",
+      "animated": true,
+      "label": "Switch to HubSpot",
+      "condition": null
+    },
+    {
+      "id": "edge_step_11_to_step_12",
+      "source": "step_11",
+      "target": "step_12",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_12_to_step_13",
+      "source": "step_12",
+      "target": "step_13",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_13_to_step_14",
+      "source": "step_13",
+      "target": "step_14",
+      "animated": true,
+      "label": "Switch to Gmail",
+      "condition": null
+    },
+    {
+      "id": "edge_step_14_to_step_15",
+      "source": "step_14",
+      "target": "step_15",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_15_to_step_16",
+      "source": "step_15",
+      "target": "step_16",
+      "animated": true,
+      "label": "Switch to HubSpot",
+      "condition": null
+    },
+    {
+      "id": "edge_step_16_to_step_17",
+      "source": "step_16",
+      "target": "step_17",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    },
+    {
+      "id": "edge_step_17_to_step_18",
+      "source": "step_17",
+      "target": "step_18",
+      "animated": true,
+      "label": "Switch to Slack",
+      "condition": null
+    },
+    {
+      "id": "edge_step_18_to_step_19",
+      "source": "step_18",
+      "target": "step_19",
+      "animated": true,
+      "label": "Switch to Gmail",
+      "condition": null
+    },
+    {
+      "id": "edge_step_19_to_step_20",
+      "source": "step_19",
+      "target": "step_20",
+      "animated": true,
+      "label": "Switch to Notion",
+      "condition": null
+    },
+    {
+      "id": "edge_step_20_to_step_21",
+      "source": "step_20",
+      "target": "step_21",
+      "animated": true,
+      "label": "Continue",
+      "condition": null
+    }
+  ],
+  "metadata": {
+    "title": "Lead Qualification and CRM Update",
+    "generated_at": "2025-09-09T16:00:37.697597",
+    "total_events": 21,
+    "unique_tools": 6,
+    "tools": [
+      "Browser",
+      "Slack",
+      "LinkedIn",
+      "HubSpot",
+      "Notion",
+      "Gmail"
+    ],
+    "total_duration_ms": 296000,
+    "confidence": 0.8000000000000002
+  }
+}

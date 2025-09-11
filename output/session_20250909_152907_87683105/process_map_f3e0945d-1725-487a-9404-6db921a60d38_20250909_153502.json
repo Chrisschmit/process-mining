@@ -1,0 +1,83 @@
+{
+  "nodes": [
+    {
+      "id": "step_1",
+      "type": "trigger",
+      "position": {
+        "x": 200,
+        "y": 50
+      },
+      "data": {
+        "label": "Read email",
+        "description": "User accessed and reviewed an email in Gmail to gather information pertinent to the ongoing project, enabling them to proceed with relevant tasks or decision-making based on the emails content.",
+        "tool": "Gmail"
+      },
+      "timestamp_ms": 7000,
+      "confidence_score": 0.8,
+      "tool_context": "Gmail"
+    },
+    {
+      "id": "step_2",
+      "type": "process",
+      "position": {
+        "x": 200,
+        "y": 300
+      },
+      "data": {
+        "label": "Search LinkedIn",
+        "description": "User researched Breuer Bass and Decagon by searching for them on LinkedIn and Google, navigating to their respective profiles and company page to gather information for business purposes, likely re...",
+        "tool": "Browser"
+      },
+      "timestamp_ms": 24000,
+      "confidence_score": 0.8,
+      "tool_context": "Browser"
+    },
+    {
+      "id": "step_3",
+      "type": "output",
+      "position": {
+        "x": 200,
+        "y": 550
+      },
+      "data": {
+        "label": "Create HubSpot contact",
+        "description": "User created a new HubSpot contact and drafted a reply email in Gmail, initiating outreach to a prospective customer or lead after capturing their details in the CRM.  This ensures efficient commun...",
+        "tool": "HubSpot"
+      },
+      "timestamp_ms": 130000,
+      "confidence_score": 0.8,
+      "tool_context": "HubSpot"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_step_1_to_step_2",
+      "source": "step_1",
+      "target": "step_2",
+      "animated": true,
+      "label": "Switch to Browser",
+      "condition": null
+    },
+    {
+      "id": "edge_step_2_to_step_3",
+      "source": "step_2",
+      "target": "step_3",
+      "animated": true,
+      "label": "Switch to HubSpot",
+      "condition": null
+    }
+  ],
+  "metadata": {
+    "title": "Lead Qualification and HubSpot Update",
+    "generated_at": "2025-09-09T15:35:06.745495",
+    "total_events": 21,
+    "unique_tools": 3,
+    "tools": [
+      "Gmail",
+      "Browser",
+      "HubSpot"
+    ],
+    "total_duration_ms": 296000,
+    "confidence": 0.8
+  }
+}

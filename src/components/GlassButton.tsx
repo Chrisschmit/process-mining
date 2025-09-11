@@ -29,7 +29,7 @@ export default function GlassButton({
         disabled={disabled}
         {...ariaProps}
       >
-        <div className="font-medium text-white">{children}</div>
+        <div className="font-medium" style={{ color: "var(--text)" }}>{children}</div>
       </button>
     </GlassContainer>
   );

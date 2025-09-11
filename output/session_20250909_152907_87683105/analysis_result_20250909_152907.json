@@ -1,0 +1,531 @@
+{
+  "session_id": "f3e0945d-1725-487a-9404-6db921a60d38",
+  "user_info": {
+    "user": "system"
+  },
+  "processing_timestamp": "2025-09-09 15:31:36.112980",
+  "video_metadata": {
+    "path": "/Users/magic-rabbit/Documents/00_Tech-Repositories/fastvlm-webgpu/backend/input/sales_video.webm",
+    "duration": 371.0
+  },
+  "scenes": [
+    {
+      "scene_id": 0,
+      "start_time_ms": 0,
+      "end_time_ms": 371000,
+      "duration_ms": 371000,
+      "change_score": 1.0,
+      "frame_path": null
+    }
+  ],
+  "events": [
+    {
+      "timestamp_ms": 7000,
+      "event_type": null,
+      "tool": {
+        "name": "Gmail",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens an email in Gmail.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_001_7000ms.jpg"
+    },
+    {
+      "timestamp_ms": 24000,
+      "event_type": null,
+      "tool": {
+        "name": "Browser",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens a new tab in the browser and navigates to LinkedIn.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_002_24000ms.jpg"
+    },
+    {
+      "timestamp_ms": 27000,
+      "event_type": null,
+      "tool": {
+        "name": "LinkedIn",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user searches for \"Breuer Bass\" on LinkedIn.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_003_27000ms.jpg"
+    },
+    {
+      "timestamp_ms": 30000,
+      "event_type": null,
+      "tool": {
+        "name": "LinkedIn",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user navigates to Breuer Bass's LinkedIn profile.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_004_30000ms.jpg"
+    },
+    {
+      "timestamp_ms": 40000,
+      "event_type": null,
+      "tool": {
+        "name": "LinkedIn",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user navigates to Decagon's LinkedIn company page.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_005_40000ms.jpg"
+    },
+    {
+      "timestamp_ms": 51000,
+      "event_type": null,
+      "tool": {
+        "name": "Browser",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens a new tab in the browser and searches for \"decagon\" on Google.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_006_51000ms.jpg"
+    },
+    {
+      "timestamp_ms": 55000,
+      "event_type": null,
+      "tool": {
+        "name": "Browser",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user navigates to Decagon's website.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_007_55000ms.jpg"
+    },
+    {
+      "timestamp_ms": 101000,
+      "event_type": null,
+      "tool": {
+        "name": "Browser",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens a new tab in the browser and searches for \"hubspot\" on Google.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_008_101000ms.jpg"
+    },
+    {
+      "timestamp_ms": 107000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user navigates to HubSpot's website and attempts to log in.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_009_107000ms.jpg"
+    },
+    {
+      "timestamp_ms": 110000,
+      "event_type": null,
+      "tool": {
+        "name": "Browser",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens a new tab in the browser and navigates to LinkedIn.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_010_110000ms.jpg"
+    },
+    {
+      "timestamp_ms": 130000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user logs into HubSpot.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_011_130000ms.jpg"
+    },
+    {
+      "timestamp_ms": 148000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user navigates to the contacts section in HubSpot.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_012_148000ms.jpg"
+    },
+    {
+      "timestamp_ms": 152000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user creates a new contact in HubSpot.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_013_152000ms.jpg"
+    },
+    {
+      "timestamp_ms": 155000,
+      "event_type": null,
+      "tool": {
+        "name": "Gmail",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user switches back to Gmail.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_014_155000ms.jpg"
+    },
+    {
+      "timestamp_ms": 156000,
+      "event_type": null,
+      "tool": {
+        "name": "Gmail",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user drafts a reply email in Gmail.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": "screenshots/event_015_156000ms.jpg"
+    },
+    {
+      "timestamp_ms": 200000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user switches back to HubSpot.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    },
+    {
+      "timestamp_ms": 211000,
+      "event_type": null,
+      "tool": {
+        "name": "HubSpot",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user creates a new deal in HubSpot.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    },
+    {
+      "timestamp_ms": 252000,
+      "event_type": null,
+      "tool": {
+        "name": "Slack",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user switches to Slack and sends a message.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    },
+    {
+      "timestamp_ms": 270000,
+      "event_type": null,
+      "tool": {
+        "name": "Gmail",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user switches back to Gmail and sends the email.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    },
+    {
+      "timestamp_ms": 287000,
+      "event_type": null,
+      "tool": {
+        "name": "Notion",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens Notion and views a database.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    },
+    {
+      "timestamp_ms": 303000,
+      "event_type": null,
+      "tool": {
+        "name": "Notion",
+        "type": null,
+        "url": null,
+        "version": null
+      },
+      "description": "The user opens a Notion page.",
+      "workflow_step": null,
+      "confidence_score": null,
+      "audio_transcript": null,
+      "screenshot_path": null
+    }
+  ],
+  "transcripts": [
+    {
+      "timestamp": 10783,
+      "speaker": null,
+      "text": "So impressive, your work.",
+      "confidence": null
+    },
+    {
+      "timestamp": 16000,
+      "speaker": null,
+      "text": "I came across your company and was very impressed with your work.",
+      "confidence": null
+    },
+    {
+      "timestamp": 18783,
+      "speaker": null,
+      "text": "My team is looking for a solution for the mapping process of complex backoffice workflows, and your services seem like a great fit.",
+      "confidence": null
+    },
+    {
+      "timestamp": 20783,
+      "speaker": null,
+      "text": "We are a team of 50 to 70 people and are in the process of defining a budget for this quarter.",
+      "confidence": null
+    },
+    {
+      "timestamp": 22783,
+      "speaker": null,
+      "text": "I'd love to learn more and understand how you could help us.",
+      "confidence": null
+    },
+    {
+      "timestamp": 24783,
+      "speaker": null,
+      "text": "Breuer Bass",
+      "confidence": null
+    },
+    {
+      "timestamp": 27783,
+      "speaker": null,
+      "text": "LinkedIn",
+      "confidence": null
+    },
+    {
+      "timestamp": 28783,
+      "speaker": null,
+      "text": "Breuer Bass",
+      "confidence": null
+    },
+    {
+      "timestamp": 42783,
+      "speaker": null,
+      "text": "Decagon",
+      "confidence": null
+    },
+    {
+      "timestamp": 101783,
+      "speaker": null,
+      "text": "HubSpot",
+      "confidence": null
+    },
+    {
+      "timestamp": 110783,
+      "speaker": null,
+      "text": "Login",
+      "confidence": null
+    },
+    {
+      "timestamp": 112783,
+      "speaker": null,
+      "text": "Login HubSpot",
+      "confidence": null
+    },
+    {
+      "timestamp": 118783,
+      "speaker": null,
+      "text": "HubSpot",
+      "confidence": null
+    },
+    {
+      "timestamp": 143783,
+      "speaker": null,
+      "text": "Kontakte",
+      "confidence": null
+    },
+    {
+      "timestamp": 209783,
+      "speaker": null,
+      "text": "Breuer Bass",
+      "confidence": null
+    },
+    {
+      "timestamp": 222783,
+      "speaker": null,
+      "text": "Senior Director of Solutions",
+      "confidence": null
+    },
+    {
+      "timestamp": 309783,
+      "speaker": null,
+      "text": "Deals",
+      "confidence": null
+    },
+    {
+      "timestamp": 316783,
+      "speaker": null,
+      "text": "Decagon AI",
+      "confidence": null
+    },
+    {
+      "timestamp": 333783,
+      "speaker": null,
+      "text": "Breuer Bass",
+      "confidence": null
+    },
+    {
+      "timestamp": 400783,
+      "speaker": null,
+      "text": "Felix",
+      "confidence": null
+    },
+    {
+      "timestamp": 400783,
+      "speaker": null,
+      "text": "Quick ping Felix, we have a new incoming deal with Decagon, can you schedule a meeting asap, I set the deal in HubSpot!",
+      "confidence": null
+    },
+    {
+      "timestamp": 438783,
+      "speaker": null,
+      "text": "Hi Christophe,",
+      "confidence": null
+    },
+    {
+      "timestamp": 453783,
+      "speaker": null,
+      "text": "thank you for your interest in our process mapping solution.",
+      "confidence": null
+    },
+    {
+      "timestamp": 473783,
+      "speaker": null,
+      "text": "Felix will reach out to you shortly to show you how our solution could best benefit your team.",
+      "confidence": null
+    },
+    {
+      "timestamp": 493783,
+      "speaker": null,
+      "text": "Kind regards,",
+      "confidence": null
+    },
+    {
+      "timestamp": 503783,
+      "speaker": null,
+      "text": "Christophe Schmidt",
+      "confidence": null
+    },
+    {
+      "timestamp": 557783,
+      "speaker": null,
+      "text": "Notes",
+      "confidence": null
+    },
+    {
+      "timestamp": 577783,
+      "speaker": null,
+      "text": "Database view",
+      "confidence": null
+    },
+    {
+      "timestamp": 603783,
+      "speaker": null,
+      "text": "Hypothesen",
+      "confidence": null
+    }
+  ],
+  "process_summary": {
+    "total_duration_ms": 371000,
+    "total_events": 21,
+    "unique_tools": [],
+    "workflow_summary": "============================================================\nPROCESS MINING ANALYSIS SUMMARY\n============================================================\n\nOverview:\n  Duration: 371.0 seconds (6:11)\n  Total Events Detected: 21\n  Unique Tools/Applications: 6\n\nTools & Applications Used:\n  Browser (5 interactions)\n  Gmail (4 interactions)\n  HubSpot (6 interactions)\n  LinkedIn (3 interactions)\n  Notion (2 interactions)\n  Slack (1 interactions)\n\nProcess Flow Summary:\n  Key steps detected in the workflow:\n\n  1. [7s] Gmail:\n     -> The user opens an email in Gmail.\n  2. [24s] Browser:\n     -> The user opens a new tab in the browser and navigates to Lin...\n  3. [27s-40s] LinkedIn:\n     -> The user searches for \"Breuer Bass\" on LinkedIn.\n     -> The user navigates to Breuer Bass's LinkedIn profile.\n     -> The user navigates to Decagon's LinkedIn company page.\n  4. [51s-101s] Browser:\n     -> The user opens a new tab in the browser and searches for \"de...\n     -> The user navigates to Decagon's website.\n     -> The user opens a new tab in the browser and searches for \"hu...\n  5. [107s] HubSpot:\n     -> The user navigates to HubSpot's website and attempts to log ...\n  6. [110s] Browser:\n     -> The user opens a new tab in the browser and navigates to Lin...\n  7. [130s-152s] HubSpot:\n     -> The user logs into HubSpot.\n     -> The user navigates to the contacts section in HubSpot.\n     -> The user creates a new contact in HubSpot.\n  8. [155s-156s] Gmail:\n     -> The user switches back to Gmail.\n     -> The user drafts a reply email in Gmail.\n  9. [200s-211s] HubSpot:\n     -> The user switches back to HubSpot.\n     -> The user creates a new deal in HubSpot.\n  10. [252s] Slack:\n     -> The user switches to Slack and sends a message.\n\n  ... and 2 more tool transitions\n\nProcess Insights:\n  Multi-tool workflow detected (6 different applications)\n\n============================================================\n\nAI-GENERATED BUSINESS PROCESS ANALYSIS\n============================================================\n\n## Workflow Analysis: Lead Qualification and Data Entry\n\n**1. Workflow Identification**: This appears to be a single workflow related to lead qualification and data entry.  We can call it the \"New Lead Processing\" workflow.\n\n**2. Process Description**: The user receives an email, likely regarding a potential lead. They then conduct research on the individual and their company using LinkedIn and Google.  After gathering information, they log into a CRM (HubSpot), create a new contact and associated deal, and document the activity in the CRM.  Finally, they communicate internally via Slack and respond to the initial email.  They then consult a database and/or documentation in Notion, possibly related to next steps or process documentation.\n\n**3. Step-by-Step Breakdown**:\n\n* **Step 1: Lead Identification and Research:**\n    * **Goal:** Gather information about a potential lead and their company.\n    * **Tools:** Gmail, Browser (LinkedIn, Google Search), LinkedIn\n    * **Data:** Lead name, company name, company website, potentially other relevant information from LinkedIn and company website.\n\n* **Step 2: CRM Data Entry:**\n    * **Goal:** Create a new contact and deal record in the CRM.\n    * **Tools:** HubSpot\n    * **Data:** Lead information gathered in Step 1, potentially additional information from the initial email.\n\n* **Step 3: Internal Communication and Follow-up:**\n    * **Goal:** Notify the team about the new lead and respond to the initial email inquiry.\n    * **Tools:** Slack, Gmail\n    * **Data:**  Brief message in Slack regarding the new lead, reply email content.\n\n* **Step 4: Process Review/Next Steps:**\n    * **Goal:** Potentially review next steps or relevant documentation.\n    * **Tools:** Notion\n    * **Data:** Process documentation, databases related to lead qualification.\n\n**4. Process Flow:**  The information flows primarily from the initial email to LinkedIn and the company website, then to HubSpot (CRM), and finally to Slack and back to Gmail for the reply.  There is a final step involving Notion, suggesting consultation of internal documentation or databases.  The flow is largely linear, with some branching for research activities.\n\n**5. Key Observations**:\n\n* **Business Process Type:** This is a sales/lead qualification process, with elements of data entry and internal communication.\n\n* **Inefficiencies/Repeated Actions:**  Switching between multiple tabs and applications (LinkedIn, Google Search, HubSpot, Gmail, Slack, Notion) suggests potential context switching overhead.  Manually entering data gathered from LinkedIn and the company website into HubSpot could be automated using browser extensions or other integrations. Repeatedly navigating to LinkedIn could also be streamlined.\n\n* **Critical Decision Points:** The decision to create a new contact and deal in HubSpot indicates the user has qualified the lead to some extent.\n\n* **Automation Opportunities:**  Automating data entry from LinkedIn and the company website to HubSpot would significantly improve efficiency.  Integrating communication tools (Slack, Gmail) with HubSpot could further streamline the process.\n\n\n**Executive Summary:**\n\nThe observed process involves qualifying a new lead received via email.  The user conducts research on LinkedIn and the company website before entering the lead's information into HubSpot, creating both a contact and a deal record. They then communicate internally via Slack and reply to the initial email. Finally, they reference a Notion database or document, likely for process documentation or next steps.  While the process achieves its objective, there are opportunities to improve efficiency by automating manual data entry from LinkedIn and the company website to HubSpot, potentially using browser extensions or API integrations.  Streamlining communication through integrations between HubSpot, Slack, and Gmail could also reduce context switching and improve overall process flow.\n\n\n============================================================",
+    "key_insights": [
+      "Process mining analysis completed"
+    ],
+    "complexity_score": 5.0
+  },
+  "processing_stats": {
+    "processed_at": "2025-09-09T15:31:36.112893",
+    "scene_threshold": 80.0,
+    "total_chunks": 1,
+    "action_events": 21,
+    "transcript_events": 29
+  }
+}

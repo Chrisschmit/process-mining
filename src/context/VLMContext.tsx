@@ -36,30 +36,62 @@ export const VLMProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
       setError(null);
 
       loadPromiseRef.current = (async () => {
-        try {
-          onProgress?.("Loading processor...");
-          processorRef.current = await AutoProcessor.from_pretrained(MODEL_ID);
-          onProgress?.("Processor loaded. Loading model...");
-          modelRef.current = await AutoModelForImageTextToText.from_pretrained(MODEL_ID, {
-            dtype: {
-              embed_tokens: "fp16",
-              vision_encoder: "q4",
-              decoder_model_merged: "q4",
-            },
-            device: "webgpu",
-          });
-          onProgress?.("Model loaded successfully!");
-          setIsLoaded(true);
-        } catch (e) {
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          setError(errorMessage);
-          console.error("Error loading model:", e);
-          throw e;
-        } finally {
-          setIsLoading(false);
-          loadPromiseRef.current = null;
+        const maxRetries = 3;
+        let lastError: Error | null = null;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            onProgress?.(`Loading processor... (attempt ${attempt}/${maxRetries})`);
+            
+            // Add timeout wrapper for processor loading
+            const processorPromise = AutoProcessor.from_pretrained(MODEL_ID);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Processor loading timeout")), 60000)
+            );
+            
+            processorRef.current = await Promise.race([processorPromise, timeoutPromise]) as LlavaProcessor;
+            onProgress?.("Processor loaded. Loading model...");
+            
+            // Add timeout wrapper for model loading
+            const modelPromise = AutoModelForImageTextToText.from_pretrained(MODEL_ID, {
+              dtype: {
+                embed_tokens: "fp16",
+                vision_encoder: "q4",
+                decoder_model_merged: "q4",
+              },
+              device: "webgpu",
+            });
+            const modelTimeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Model loading timeout")), 120000)
+            );
+            
+            modelRef.current = await Promise.race([modelPromise, modelTimeoutPromise]) as PreTrainedModel;
+            onProgress?.("Model loaded successfully!");
+            setIsLoaded(true);
+            return; // Success, exit retry loop
+            
+          } catch (e) {
+            lastError = e instanceof Error ? e : new Error(String(e));
+            console.error(`Model loading attempt ${attempt} failed:`, lastError);
+            
+            if (attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+              onProgress?.(`Loading failed, retrying in ${delay/1000}s... (${lastError.message})`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
         }
-      })();
+
+        // All retries failed
+        const errorMessage = lastError?.message || "Failed to load model after multiple attempts";
+        setError(errorMessage);
+        console.error("All model loading attempts failed:", lastError);
+        throw lastError || new Error(errorMessage);
+        
+      })().finally(() => {
+        setIsLoading(false);
+        loadPromiseRef.current = null;
+      });
 
       return loadPromiseRef.current;
     },

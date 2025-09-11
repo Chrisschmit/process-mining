@@ -28,6 +28,7 @@ export default function App() {
     setAppState("captioning");
   }, []);
 
+
   const setupVideo = useCallback((video: HTMLVideoElement, stream: MediaStream) => {
     const videoFileUrl = (stream as MediaStream & { videoFileUrl?: string }).videoFileUrl;
 
@@ -78,7 +79,7 @@ export default function App() {
 
   return (
     <div className="App relative h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
 
       {mediaStream && (
         <video
@@ -94,9 +95,15 @@ export default function App() {
         />
       )}
 
-      {appState !== "captioning" && <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" />}
+      {appState !== "captioning" && (
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
+      )}
 
-      {appState === "welcome" && <WelcomeScreen onStart={handleStart} />}
+      {appState === "welcome" && (
+        <WelcomeScreen 
+          onStart={handleStart}
+        />
+      )}
 
       {appState === "source-selection" && <InputSourceDialog onSourceSelected={handleSourceSelected} />}
 
