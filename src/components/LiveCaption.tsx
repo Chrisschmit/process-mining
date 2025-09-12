@@ -8,7 +8,9 @@ interface LiveCaptionProps {
 }
 
 export default function LiveCaption({ caption, isRunning, error }: LiveCaptionProps) {
-  const content = error || caption;
+  // Limit caption text to prevent overflow - truncate to ~500 characters
+  const truncatedCaption = caption && caption.length > 750 ? caption.substring(0, 700) + '...' : caption;
+  const content = error || truncatedCaption;
 
   const { color, label } = error
     ? { color: "bg-red-500", label: "ERROR" }
@@ -19,7 +21,7 @@ export default function LiveCaption({ caption, isRunning, error }: LiveCaptionPr
   return (
     <GlassContainer
       bgColor={error ? GLASS_EFFECTS.COLORS.ERROR_BG : GLASS_EFFECTS.COLORS.DEFAULT_BG}
-      className={`w-150 h-45 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200 ${
+      className={`w-150 h-70 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200 ${
         error ? "border border-red-500/30" : ""
       }`}
     >
@@ -32,7 +34,7 @@ export default function LiveCaption({ caption, isRunning, error }: LiveCaptionPr
           </div>
         </div>
 
-        <div className="min-h-[4rem] flex flex-col">
+        <div className="min-h-[6rem] flex flex-col">
           {content ? (
             <div className={`text-sm opacity-85 leading-relaxed flex-1 ${error ? "text-red-300" : ""}`}>
               <span>{content || PROMPTS.fallbackCaption}</span>

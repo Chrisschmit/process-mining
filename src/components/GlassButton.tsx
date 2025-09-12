@@ -20,10 +20,15 @@ export default function GlassButton({
   ...ariaProps
 }: GlassButtonProps) {
   return (
-    <GlassContainer bgColor={bgColor} className="rounded-xl">
+    <GlassContainer 
+      bgColor={bgColor} 
+      className={`rounded-2xl shadow-2xl transition-transform duration-200 ${
+        disabled ? "opacity-50" : "hover:scale-105"
+      }`}
+    >
       <button
-        className={`px-4 py-2 border-none cursor-pointer bg-transparent transition-transform duration-200 outline-none ${
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+        className={`px-4 py-2 border-none cursor-pointer bg-transparent transition-all duration-200 outline-none ${
+          disabled ? "cursor-not-allowed" : "active:scale-95"
         } ${className}`}
         onClick={disabled ? undefined : onClick}
         disabled={disabled}

@@ -10,10 +10,9 @@ import 'reactflow/dist/style.css';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - Vite raw import returns a string
 import leadQualificationJsonRaw from '../../output/session_20250909_152907_87683105/process_map_f3e0945d-1725-487a-9404-6db921a60d38_20250909_155959.json?raw';
-// Video asset for modal preview
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - Vite handles static asset imports
-import salesVideoUrl from '../../backend/input/sales_video.webm';
+import SalesOverviewModal from './SalesOverviewModal';
+import WorkflowDiffModal from './WorkflowDiffModal';
+import WorkflowDetailModal from './WorkflowDetailModal';
 
 interface Project {
   id: string;
@@ -82,6 +81,8 @@ export default function AdminDashboard() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowInsight | null>(null);
   const [viewLevel, setViewLevel] = useState<'overview' | 'workflow' | 'raw-data'>('overview');
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState<boolean>(false);
+  const [isSalesOverviewOpen, setIsSalesOverviewOpen] = useState<boolean>(false);
+  const [isWorkflowDiffOpen, setIsWorkflowDiffOpen] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleSeekVideo = (seconds: number) => {
@@ -103,18 +104,18 @@ export default function AdminDashboard() {
   const mockProjects: Project[] = useMemo(() => [
     {
       id: 'proj-001', 
-      name: 'Sales Process Optimization',
-      department: 'Sales',
+      name: 'Sales Processes',
+      department: 'Sales Department',
       participantCount: 3,
-      completedCount: 1,
-      totalMinutesAnalyzed: 156,
+      completedCount: 3,
+      totalMinutesAnalyzed: 29,
       createdDate: '2024-01-10',
       status: 'active'
     },
     {
       id: 'proj-002',
-      name: 'Accounting Department Analysis',
-      department: 'Accounting',
+      name: 'Accounting Processes',
+      department: 'Accounting Department',
       participantCount: 8,
       completedCount: 6,
       totalMinutesAnalyzed: 1247,
@@ -129,28 +130,38 @@ export default function AdminDashboard() {
       id: 'wf-001',
       name: 'Inbound Lead Qualification',
       description: 'Lead intake, enrichment, CRM updates, and follow-ups across Gmail, LinkedIn, HubSpot, Slack, and Notion',
-      frequency: 7,
-      avgDuration: 4.9,
+      frequency: 32,
+      avgDuration: 8,
       efficiency: 0.85,
       systems: ['Gmail', 'LinkedIn', 'HubSpot', 'Slack', 'Notion'],
       category: 'communication'
     },
     {
-      id: 'wf-004',
-      name: 'Invoice Processing',
+      id: 'wf-002',
+      name: 'Client Follow-up',
       description: 'Automated data entry from email attachments to ERP system',
-      frequency: 3,
-      avgDuration: 3.2,
+      frequency: 72,
+      avgDuration: 4,
       efficiency: 0.72,
       systems: ['Outlook', 'SAP', 'Excel'],
       category: 'data-entry'
     },
     {
-      id: 'wf-002',
+      id: 'wf-003',
+      name: 'Invoice Processing',
+      description: 'Automated data entry from email attachments to ERP system',
+      frequency: 72,
+      avgDuration: 4,
+      efficiency: 0.72,
+      systems: ['Outlook', 'SAP', 'Excel'],
+      category: 'data-entry'
+    },
+    {
+      id: 'wf-004',
       name: 'New Client Onboarding', 
       description: 'Complete workflow from initial contact to account activation',
-      frequency: 1,
-      avgDuration: 12.5,
+      frequency: 5,
+      avgDuration: 32,
       efficiency: 0.85,
       systems: ['Hubspot', 'DocuSign', 'MSTeams'],
       category: 'communication'
@@ -162,7 +173,7 @@ export default function AdminDashboard() {
       id: 'part-001',
       name: 'Sarah Chen',
       email: 'sarah.chen@company.com',
-      department: 'Accounting',
+      department: 'Sales',
       status: 'completed',
       recordingDuration: 156,
       completionDate: '2024-01-28',
@@ -172,18 +183,81 @@ export default function AdminDashboard() {
       id: 'part-002',
       name: 'Mike Rodriguez',
       email: 'mike.rodriguez@company.com', 
-      department: 'Accounting',
-      status: 'in-progress',
+      department: 'Sales',
+      status: 'completed',
       assignedDate: '2024-01-22'
     }, {
       id: 'part-003',
       name: 'Emily Watson',
       email: 'emily.watson@company.com', 
-      department: 'Accounting',
-      status: 'pending',
+      department: 'Sales',
+      status: 'completed',
       assignedDate: '2024-01-22'
     }
   ], []);
+
+  // Build team-level comparative data (workflows + systems) using participant names
+  const salesEmployeesData = useMemo(() => {
+    // totals (minutes) per person — use provided recordingDuration if available
+    const totals: Record<string, number> = {
+      'Sarah Chen': mockParticipants.find(p => p.name === 'Sarah Chen')?.recordingDuration || 29,
+      'Mike Rodriguez': 120,
+      'Emily Watson': 90,
+    };
+
+    // workflow breakdowns (minutes)
+    const workflows: Record<string, Record<string, number>> = {
+      'Sarah Chen': {
+        'Inbound Lead Qualification': Math.round(totals['Sarah Chen'] * 0.65),
+        'Client Follow-up': Math.round(totals['Sarah Chen'] * 0.18),
+        'Invoice Processing': Math.round(totals['Sarah Chen'] * 0.12),
+        'New Client Onboarding': Math.round(totals['Sarah Chen'] * 0.05),
+      },
+      'Mike Rodriguez': {
+        'Inbound Lead Qualification': Math.round(totals['Mike Rodriguez'] * 0.42),
+        'Client Follow-up': Math.round(totals['Mike Rodriguez'] * 0.34),
+        'Invoice Processing': Math.round(totals['Mike Rodriguez'] * 0.18),
+        'New Client Onboarding': Math.round(totals['Mike Rodriguez'] * 0.06),
+      },
+      'Emily Watson': {
+        'Inbound Lead Qualification': Math.round(totals['Emily Watson'] * 0.30),
+        'Client Follow-up': Math.round(totals['Emily Watson'] * 0.40),
+        'Invoice Processing': Math.round(totals['Emily Watson'] * 0.20),
+        'New Client Onboarding': Math.round(totals['Emily Watson'] * 0.10),
+      },
+    };
+
+    // system breakdowns (minutes)
+    const systems: Record<string, Record<string, number>> = {
+      'Sarah Chen': {
+        'Gmail': Math.round(totals['Sarah Chen'] * 0.28),
+        'LinkedIn': Math.round(totals['Sarah Chen'] * 0.12),
+        'HubSpot': Math.round(totals['Sarah Chen'] * 0.35),
+        'Slack': Math.round(totals['Sarah Chen'] * 0.08),
+        'Excel': Math.round(totals['Sarah Chen'] * 0.17), // moved Notion share into Excel
+      },
+      'Mike Rodriguez': {
+        'Gmail': Math.round(totals['Mike Rodriguez'] * 0.22),
+        'LinkedIn': Math.round(totals['Mike Rodriguez'] * 0.18),
+        'HubSpot': Math.round(totals['Mike Rodriguez'] * 0.30),
+        'Slack': Math.round(totals['Mike Rodriguez'] * 0.12),
+        'Excel': Math.round(totals['Mike Rodriguez'] * 0.18),
+      },
+      'Emily Watson': {
+        'Gmail': Math.round(totals['Emily Watson'] * 0.26), // replaced Outlook
+        'LinkedIn': Math.round(totals['Emily Watson'] * 0.14),
+        'HubSpot': Math.round(totals['Emily Watson'] * 0.28),
+        'Slack': Math.round(totals['Emily Watson'] * 0.12),
+        'Excel': Math.round(totals['Emily Watson'] * 0.20),
+      },
+    };
+
+    return ['Sarah Chen', 'Mike Rodriguez', 'Emily Watson'].map((name) => ({
+      name,
+      workflows: workflows[name],
+      systems: systems[name],
+    }));
+  }, [mockParticipants]);
 
   // Auto-select first project on mount
   useEffect(() => {
@@ -266,7 +340,7 @@ export default function AdminDashboard() {
                 >
                   <div className={`${DESIGN_TOKENS.typography.body} text-gray-900 mb-1`}>{project.name}</div>
                   <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>{project.department}</div>
-                  <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-2 flex justify-between`}>
+                  {/* <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-2 flex justify-between`}>
                     <span>{project.completedCount}/{project.participantCount} complete</span>
                     <span className={`px-2 py-1 rounded-full ${
                       project.status === 'completed' ? 'bg-green-100 text-green-700' :
@@ -275,7 +349,7 @@ export default function AdminDashboard() {
                     }`}>
                       {project.status}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               ))}
             </div>
@@ -295,11 +369,6 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <div className={`${DESIGN_TOKENS.typography.caption} text-gray-600`}>{participant.email}</div>
-                    {participant.recordingDuration && (
-                      <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>
-                        {participant.recordingDuration}min recorded
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -338,7 +407,7 @@ export default function AdminDashboard() {
                   
                   <div className={`${DESIGN_TOKENS.components.card} p-4`}>
                     <div className={`${DESIGN_TOKENS.typography.h2}`} style={{color: 'hsl(221 65% 35%)'}}>{projectKPIs.totalAnalyzed}</div>
-                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Minutes Analyzed</div>
+                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Hours Analyzed</div>
                     <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>Total processed time</div>
                   </div>
                   
@@ -359,295 +428,262 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Persona Summary Section */}
-            <div className="bg-white border-b border-gray-200 p-6">
-              <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-4`}>Session Summary: Sarah Chen-20250909 </h3>
-              <div className={`${DESIGN_TOKENS.components.card} p-6`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>Sarah Chen - Senior Sales Associate</h4>
-                    <p className={`${DESIGN_TOKENS.typography.body} text-gray-700 mb-4 leading-relaxed`}>
-                      Sarah spends <strong>65% of her time on inbound lead qualification</strong>, primarily using Gmail, LinkedIn, and HubSpot. 
-                      Her workflow typically involves lead intake, enrichment, CRM updates, and follow-ups across multiple platforms.
-                    </p>
-                    <button
-                      onClick={() => {
-                        // Navigate to detailed insights view
-                        console.log('Review session insights clicked');
-                      }}
-                      className={`${DESIGN_TOKENS.components.buttonPrimary} px-6 py-3`}
-                    >
-                      Review session insights
-                    </button>
-                    <WorkflowDiffLauncher />
+
+            {/* Scrollable Content Area - Department Overview + Workflow Insights */}
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+              {/* Department Overview CTA */}
+              <div className="bg-white border-b border-gray-200 p-6">
+                <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-4`}>Sales Department Overview</h3>
+                <div className={`${DESIGN_TOKENS.components.card} p-6`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>Review your team's process discovery</h4>
+                      <p className={`${DESIGN_TOKENS.typography.body} text-gray-700 mb-4 leading-relaxed`}>
+                        Last 7 days: we processed <strong>29 hours</strong> across <strong>3 Sales team members</strong>.
+                        AI identified <strong>4 core workflows</strong> covering <strong>~80% of activity time</strong>.
+                        Notable variance: <strong>Invoice Processing</strong> ranges between <strong>12–28%</strong> across the team.
+                      </p>
+                      <div className="flex gap-3 items-center">
+                        <button
+                          onClick={() => setIsSalesOverviewOpen(true)}
+                          className={`${DESIGN_TOKENS.components.buttonPrimary} px-6 py-3`}
+                        >
+                          Process Overview
+                        </button>
+                        <button 
+                          onClick={() => setIsWorkflowDiffOpen(true)} 
+                          className={`${DESIGN_TOKENS.components.buttonSecondary} ml-3 px-6 py-3`}
+                        >
+                          Compare workflows
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Main Content - Workflow Insights */}
-            <div className="flex-1 p-6 overflow-y-auto bg-gray-50">
-              {viewLevel === 'overview' && (
-                <div>
-                  <div className="mb-6">
-                    <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>Workflow Insights</h3>
-                    <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>AI-identified processes and patterns from video analysis</p>
-                  </div>
+              {/* Main Content - Workflow Insights */}
+              <div className="p-6">
+                {viewLevel === 'overview' && (
+                  <div>
+                    <div className="mb-6">
+                      <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>Workflow Insights</h3>
+                      <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>AI-identified processes and patterns from video analysis</p>
+                    </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {mockWorkflowInsights.map((workflow) => (
-                      <div
-                        key={workflow.id}
-                        onClick={() => {
-                          setSelectedWorkflow(workflow);
-                          setIsWorkflowModalOpen(true);
-                        }}
-                        className={`${DESIGN_TOKENS.components.card} p-6 cursor-pointer hover:shadow-lg transition-all duration-200`}
-                      >
-                        <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>{workflow.name}</h4>
-                        <p className={`${DESIGN_TOKENS.typography.small} text-gray-600 mb-4 h-12 leading-4 overflow-hidden`}>{workflow.description}</p>
-                        
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <div className={`${DESIGN_TOKENS.typography.h4}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.frequency}</div>
-                            <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>Occurrences</div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {mockWorkflowInsights.map((workflow) => (
+                        <div
+                          key={workflow.id}
+                          onClick={() => {
+                            setSelectedWorkflow(workflow);
+                            setIsWorkflowModalOpen(true);
+                          }}
+                          className={`${DESIGN_TOKENS.components.card} p-6 cursor-pointer hover:shadow-lg transition-all duration-200`}
+                        >
+                          <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>{workflow.name}</h4>
+                          <p className={`${DESIGN_TOKENS.typography.small} text-gray-600 mb-4 h-12 leading-4 overflow-hidden`}>{workflow.description}</p>
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.frequency}</div>
+                              <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>Occurrences</div>
+                            </div>
+                            <div>
+                              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.avgDuration} min</div>
+                              <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>Avg Duration</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className={`${DESIGN_TOKENS.typography.h4}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.avgDuration}m</div>
-                            <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>Avg Duration</div>
+
+
+                          <div className="flex flex-wrap gap-1">
+                            {workflow.systems.slice(0, 3).map((system) => (
+                              <span key={system} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                {system}
+                              </span>
+                            ))}
+                            {workflow.systems.length > 3 && (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                +{workflow.systems.length - 3} more
+                              </span>
+                            )}
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
+                {viewLevel === 'workflow' && selectedWorkflow && (
+                  <div>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>{selectedWorkflow.name}</h3>
+                          <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>{selectedWorkflow.description}</p>
+                        </div>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => setViewLevel('raw-data')}
+                            className={`${DESIGN_TOKENS.components.buttonSecondary}`}
+                          >
+                            View Raw Data
+                          </button>
+                          <button
+                            onClick={() => setViewLevel('overview')}
+                            className={`${DESIGN_TOKENS.components.buttonPrimary}`}
+                          >
+                            Back to Overview
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
-                        <div className="flex flex-wrap gap-1">
-                          {workflow.systems.slice(0, 3).map((system) => (
-                            <span key={system} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                              {system}
-                            </span>
-                          ))}
-                          {workflow.systems.length > 3 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                              +{workflow.systems.length - 3} more
-                            </span>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* Process Map Visualization */}
+                      <div className={`${DESIGN_TOKENS.components.card} p-6`}>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>Process Flow</h4>
+                          {selectedWorkflow.name === 'Inbound Lead Qualification' && (
+                            <ExpandProcessMapButton />
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {viewLevel === 'workflow' && selectedWorkflow && (
-                <div>
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>{selectedWorkflow.name}</h3>
-                        <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>{selectedWorkflow.description}</p>
-                      </div>
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => setViewLevel('raw-data')}
-                          className={`${DESIGN_TOKENS.components.buttonSecondary}`}
-                        >
-                          View Raw Data
-                        </button>
-                        <button
-                          onClick={() => setViewLevel('overview')}
-                          className={`${DESIGN_TOKENS.components.buttonPrimary}`}
-                        >
-                          Back to Overview
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Process Map Visualization */}
-                    <div className={`${DESIGN_TOKENS.components.card} p-6`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>Process Flow</h4>
-                        {selectedWorkflow.name === 'Inbound Lead Qualification' && (
-                          <ExpandProcessMapButton />
+                        {selectedWorkflow.name === 'Inbound Lead Qualification' ? (
+                          <div className="rounded-lg overflow-hidden" style={{ height: 520 }}>
+                            <ReactFlowDraft />
+                          </div>
+                        ) : (
+                          <div className="bg-gray-100 rounded-lg p-8 text-center">
+                            <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Process Map Visualization</div>
+                            <div className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>Interactive flowchart would be rendered here</div>
+                            <div className={`${DESIGN_TOKENS.typography.caption} text-gray-400 mt-2`}>Showing: {selectedWorkflow.systems.join(' → ')}</div>
+                          </div>
                         )}
                       </div>
-                      {selectedWorkflow.name === 'Inbound Lead Qualification' ? (
-                        <div className="rounded-lg overflow-hidden" style={{ height: 520 }}>
-                          <ReactFlowDraft />
-                        </div>
-                      ) : (
-                        <div className="bg-gray-100 rounded-lg p-8 text-center">
-                          <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Process Map Visualization</div>
-                          <div className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>Interactive flowchart would be rendered here</div>
-                          <div className={`${DESIGN_TOKENS.typography.caption} text-gray-400 mt-2`}>Showing: {selectedWorkflow.systems.join(' → ')}</div>
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Key Metrics */}
-                    <div className={`${DESIGN_TOKENS.components.card} p-6`}>
-                      <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-4`}>Key Metrics</h4>
-                      <div className="space-y-4">
-                        <div className="flex justify-between">
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Average Completion Time</span>
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.avgDuration} minutes</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Total Occurrences</span>
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.frequency}</span>
-                        </div>
-                        <div>
-                          <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Most Common Systems</div>
-                          <div className="space-y-1">
-                            {selectedWorkflow.systems.map((system, index) => (
-                              <div key={system} className="flex justify-between">
-                                <span className={`${DESIGN_TOKENS.typography.small} text-gray-700`}>{index + 1}. {system}</span>
-                                <span className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>
-                                  {getSystemUsagePercentage(system)}%
-                                </span>
-                              </div>
-                            ))}
+                      {/* Key Metrics */}
+                      <div className={`${DESIGN_TOKENS.components.card} p-6`}>
+                        <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-4`}>Key Metrics</h4>
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Average Completion Time</span>
+                            <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.avgDuration} minutes</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Total Occurrences</span>
+                            <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.frequency}</span>
+                          </div>
+                          <div>
+                            <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Most Common Systems</div>
+                            <div className="space-y-1">
+                              {selectedWorkflow.systems.map((system, index) => (
+                                <div key={system} className="flex justify-between">
+                                  <span className={`${DESIGN_TOKENS.typography.small} text-gray-700`}>{index + 1}. {system}</span>
+                                  <span className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>
+                                    {getSystemUsagePercentage(system)}%
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {viewLevel === 'raw-data' && (
-                <div>
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>Raw Data Analysis</h3>
-                      <button
-                        onClick={() => setViewLevel('workflow')}
-                        className={`${DESIGN_TOKENS.components.buttonPrimary}`}
-                      >
-                        Back to Workflow
-                      </button>
-                    </div>
-                    <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Detailed event data for validation and deep analysis</p>
-                  </div>
-
-                  <div className={`${DESIGN_TOKENS.components.card} overflow-hidden`}>
-                    <div className="p-4 border-b border-gray-200 bg-gray-50">
-                      <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>Event Timeline</h4>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Timestamp</th>
-                            <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Application/System</th>
-                            <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Action</th>
-                            <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Participant</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {/* Mock data - would come from API */}
-                          <tr>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:32:15</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Outlook</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Opened email attachment</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
-                          </tr>
-                          <tr>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:32:47</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>SAP</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Navigated to invoice entry form</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
-                          </tr>
-                          <tr>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:33:12</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>SAP</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Entered vendor information</td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Fullscreen Workflow Modal */}
-            {isWorkflowModalOpen && selectedWorkflow && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black/70" onClick={() => setIsWorkflowModalOpen(false)} />
-                <div className="relative bg-white rounded-xl shadow-2xl w-[96vw] h-[92vh] border border-gray-200 overflow-hidden">
-                  <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                    <div>
-                      <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900`}>{selectedWorkflow.name}</h3>
-                      <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>{selectedWorkflow.description}</p>
-                    </div>
-                    <div className="flex space-x-3">
-                      <button 
-                        onClick={() => {
-                          console.log('Export to Code Specification clicked for workflow:', selectedWorkflow.name);
-                          // Future: Generate automation script based on process map
-                        }}
-                        className={`${DESIGN_TOKENS.components.buttonPrimary} text-sm`}
-                      >
-                        Export to Code Specification
-                      </button>
-                      <button onClick={() => setIsWorkflowModalOpen(false)} className={`${DESIGN_TOKENS.components.buttonSecondary} text-sm`}>
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 h-[calc(92vh-72px)]">
-                    {/* Process Flow (React Flow) */}
-                    <div className={`${DESIGN_TOKENS.components.card} p-4 h-full`}>
-                      <div className="h-full rounded-lg overflow-hidden">
-                        <ReactFlowDraft onSeek={handleSeekVideo} />
+                {viewLevel === 'raw-data' && (
+                  <div>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-2`}>Raw Data Analysis</h3>
+                        <button
+                          onClick={() => setViewLevel('workflow')}
+                          className={`${DESIGN_TOKENS.components.buttonPrimary}`}
+                        >
+                          Back to Workflow
+                        </button>
                       </div>
+                      <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Detailed event data for validation and deep analysis</p>
                     </div>
 
-                    {/* Right column: Recording Preview above Key Metrics */}
-                    <div className={`${DESIGN_TOKENS.components.card} p-6 h-full overflow-y-auto`}>
-                      <div className="mb-6">
-                        <div className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>Recording Preview: Sarah Chen-20250909</div>
-                        <video
-                          ref={videoRef}
-                          src={salesVideoUrl as unknown as string}
-                          controls
-                          className="w-full rounded-lg bg-black aspect-video"
-                        />
+                    <div className={`${DESIGN_TOKENS.components.card} overflow-hidden`}>
+                      <div className="p-4 border-b border-gray-200 bg-gray-50">
+                        <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>Event Timeline</h4>
                       </div>
-                      <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-4`}>Key Metrics</h4>
-                      <div className="space-y-4">
-                        <div className="flex justify-between">
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Average Completion Time</span>
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.avgDuration} minutes</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Total Occurrences</span>
-                          <span className={`${DESIGN_TOKENS.typography.body} text-gray-900 font-medium`}>{selectedWorkflow.frequency}</span>
-                        </div>
-                        <div>
-                          <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Most Common Systems</div>
-                          <div className="space-y-1">
-                            {selectedWorkflow.systems.map((system, index) => (
-                              <div key={system} className="flex justify-between">
-                                <span className={`${DESIGN_TOKENS.typography.small} text-gray-700`}>{index + 1}. {system}</span>
-                                <span className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>
-                                  {getSystemUsagePercentage(system)}%
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-100">
+                            <tr>
+                              <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Timestamp</th>
+                              <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Application/System</th>
+                              <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Action</th>
+                              <th className={`px-6 py-3 text-left ${DESIGN_TOKENS.typography.caption} text-gray-600 uppercase tracking-wider font-medium`}>Participant</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {/* Mock data - would come from API */}
+                            <tr>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:32:15</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Outlook</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Opened email attachment</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
+                            </tr>
+                            <tr>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:32:47</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>SAP</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Navigated to invoice entry form</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
+                            </tr>
+                            <tr>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>14:33:12</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>SAP</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Entered vendor information</td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${DESIGN_TOKENS.typography.small} text-gray-900`}>Sarah Chen</td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
+            <WorkflowDetailModal
+              open={isWorkflowModalOpen}
+              onClose={() => setIsWorkflowModalOpen(false)}
+              workflow={selectedWorkflow}
+              onSeek={handleSeekVideo}
+            >
+              {selectedWorkflow?.name === 'Inbound Lead Qualification' ? (
+                <ReactFlowDraft onSeek={handleSeekVideo} />
+              ) : (
+                <div className="bg-gray-100 rounded-lg p-8 text-center h-full flex items-center justify-center">
+                  <div>
+                    <div className={`${DESIGN_TOKENS.typography.body} text-gray-600 mb-2`}>Process Map Visualization</div>
+                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-500`}>Interactive flowchart would be rendered here</div>
+                    <div className={`${DESIGN_TOKENS.typography.caption} text-gray-400 mt-2`}>Showing: {selectedWorkflow?.systems.join(' → ')}</div>
+                  </div>
+                </div>
+              )}
+            </WorkflowDetailModal>
           </>
         )}
       </div>
+      {isSalesOverviewOpen && (
+        <SalesOverviewModal
+          open={isSalesOverviewOpen}
+          onClose={() => setIsSalesOverviewOpen(false)}
+          employees={salesEmployeesData}
+          summaryHours={29}
+          coreWorkflows={4}
+        />
+      )}
+      
+      <WorkflowDiffModal 
+        open={isWorkflowDiffOpen} 
+        onClose={() => setIsWorkflowDiffOpen(false)} 
+      />
     </div>
   );
 }
@@ -903,137 +939,3 @@ function ReactFlowDraft({ onSeek }: { onSeek?: (seconds: number) => void }) {
   );
 }
 
-// ---------- New Feature: Side-by-side Workflow Diff Modal ----------
-function WorkflowDiffLauncher() {
-  const [open, setOpen] = useState<boolean>(false);
-  return (
-    <>
-      <button onClick={() => setOpen(true)} className={`${DESIGN_TOKENS.components.buttonSecondary} ml-3 px-6 py-3`}>
-        Compare workflows
-      </button>
-      {open && (
-        <WorkflowDiffModal onClose={() => setOpen(false)} />)
-      }
-    </>
-  );
-}
-
-function WorkflowDiffModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-[96vw] h-[92vh] border border-gray-200 overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div>
-            <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900`}>New Client Onboarding — Workflow Diff</h3>
-            <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Compare Sarah Chen vs Mike Rodriguez</p>
-          </div>
-          <button onClick={onClose} className={`${DESIGN_TOKENS.components.buttonSecondary} text-sm`}>Close</button>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(92vh-72px)]">
-          <div className={`${DESIGN_TOKENS.components.card} p-4 h-full`}>
-            <h4 className={`${DESIGN_TOKENS.typography.h4} text-blue-700 mb-3`}>Sarah Chen</h4>
-            <div className="h-full rounded-lg overflow-hidden">
-              <ReactFlowMini
-                color="#2563eb"
-                nodes={buildSampleNodes('sarah')}
-                edges={buildSampleEdges('sarah')}
-              />
-            </div>
-          </div>
-          <div className={`${DESIGN_TOKENS.components.card} p-4 h-full`}>
-            <h4 className={`${DESIGN_TOKENS.typography.h4} text-purple-700 mb-3`}>Mike Rodriguez</h4>
-            <div className="h-full rounded-lg overflow-hidden">
-              <ReactFlowMini
-                color="#7c3aed"
-                nodes={buildSampleNodes('mike')}
-                edges={buildSampleEdges('mike')}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type MiniNode = { id: string; data: { label: string }; position: { x: number; y: number }; style?: any };
-type MiniEdge = { id: string; source: string; target: string; markerEnd?: any; animated?: boolean; style?: any };
-
-function buildSampleNodes(who: 'sarah' | 'mike'): MiniNode[] {
-  // Minimal 5-step flow with small offsets to simulate differences
-  const base: MiniNode[] = [
-    { id: 'n1', data: { label: 'Capture Client Info' }, position: { x: 120, y: 0 } },
-    { id: 'n2', data: { label: 'Create CRM Record' }, position: { x: 120, y: 120 } },
-    { id: 'n3', data: { label: 'Send Welcome Email' }, position: { x: 120, y: 240 } },
-    { id: 'n4', data: { label: 'Schedule Kickoff' }, position: { x: 120, y: 360 } },
-    { id: 'n5', data: { label: 'Activate Account' }, position: { x: 120, y: 480 } },
-  ];
-  if (who === 'mike') {
-    base[2].data.label = 'Send Intro Email';
-    base[3].data.label = 'Share Docs & Schedule';
-    base[1].position.x = 140; // small horizontal variance
-  }
-  return base;
-}
-
-function buildSampleEdges(who: 'sarah' | 'mike'): MiniEdge[] {
-  return [
-    { id: 'e1', source: 'n1', target: 'n2' },
-    { id: 'e2', source: 'n2', target: 'n3' },
-    { id: 'e3', source: 'n3', target: 'n4' },
-    { id: 'e4', source: 'n4', target: 'n5' },
-  ];
-}
-
-function ReactFlowMini({ nodes, edges, color }: { nodes: MiniNode[]; edges: MiniEdge[]; color: string }) {
-  const instanceRef = useRef<any>(null);
-
-  const onInit = (inst: any) => {
-    instanceRef.current = inst;
-    requestAnimationFrame(() => applyTopAnchor(inst));
-    setTimeout(() => applyTopAnchor(inst), 80);
-  };
-
-  const applyTopAnchor = (inst: any) => {
-    if (!inst) return;
-    inst.fitView({ padding: 0.15 });
-    const vp = inst.getViewport();
-    const minY = Math.min(...nodes.map((n) => n.position.y));
-    inst.setViewport({ x: vp.x, y: -minY + 48, zoom: Math.min(1.25, Math.max(0.6, vp.zoom * 1.1)) });
-  };
-
-  const styledNodes = nodes.map((n) => ({
-    ...n,
-    style: {
-      border: `2px solid ${color}`,
-      borderRadius: 8,
-      padding: 6,
-      background: '#fff',
-      color: '#111827',
-      width: 220,
-    },
-  }));
-
-  const styledEdges = edges.map((e) => ({
-    ...e,
-    markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color },
-    animated: true,
-    style: { stroke: color },
-  }));
-
-  return (
-    <ReactFlow
-      nodes={styledNodes}
-      edges={styledEdges}
-      onInit={onInit}
-      fitView
-      fitViewOptions={{ padding: 0.15 }}
-      defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-    >
-      <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#cbd5e1" />
-      <MiniMap pannable zoomable />
-      <Controls />
-    </ReactFlow>
-  );
-}

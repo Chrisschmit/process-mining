@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import VideoScrubber from "./VideoScrubber";
 import DraggableContainer from "./DraggableContainer";
-import PromptInput from "./PromptInput";
 import LiveCaption from "./LiveCaption";
 import GlassButton from "./GlassButton";
 import { useVLMContext } from "../context/useVLMContext";
-import { PROMPTS, TIMING } from "../constants";
+import { PROMPTS, TIMING, GLASS_EFFECTS } from "../constants";
 import { RecordingManager } from "../utils/RecordingManager";
 
 interface CaptioningViewProps {
@@ -75,7 +74,7 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
   const [caption, setCaption] = useState<string>("");
   // For video files, start analysis immediately; for screen recording, wait for user to start
   const [isLoopRunning, setIsLoopRunning] = useState<boolean>(sourceType === "file");
-  const [currentPrompt, setCurrentPrompt] = useState<string>(PROMPTS.default);
+  const [currentPrompt] = useState<string>(PROMPTS.default);
   const [error, setError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isMicEnabled, setIsMicEnabled] = useState<boolean>(true);
@@ -124,10 +123,6 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
 
   useCaptioningLoop(videoRef, isLoopRunning, promptRef, handleCaptionUpdate, handleError);
 
-  const handlePromptChange = useCallback((prompt: string) => {
-    setCurrentPrompt(prompt);
-    setError(null);
-  }, []);
 
   const handleStartRecording = useCallback(async () => {
     try {
@@ -217,15 +212,13 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
         {/* Recording Controls - Only show for screen recording */}
         {sourceType === "screen" && (
           <div className="absolute top-4 left-4 z-[200]">
-            <div className="shadow-lg">
               <GlassButton
                 onClick={isRecording ? handleStopRecording : handleStartRecording}
                 className="px-6 py-3"
-                bgColor={isRecording ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)"}
+                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
               >
                 {isRecording ? "Stop Recording & Analysis" : "Start Recording"}
               </GlassButton>
-            </div>
             {isRecording && <div className="mt-2 text-sm text-red-400">Recording</div>}
             {!isRecording && !isLoopRunning && caption === "" && (
               <div className="mt-2 text-sm text-gray-400">Click to start recording and VLM analysis</div>
@@ -237,11 +230,10 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
         {sourceType === "screen" && (
           <div className="absolute top-4 right-4 z-[200] flex gap-2">
             {/* Change Screen Share Button */}
-            <div className="shadow-lg">
               <GlassButton
                 onClick={handleChangeScreenShare}
                 className="p-3"
-                bgColor="rgba(59, 130, 246, 0.1)"
+                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
                 aria-label="Change screen share"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,14 +242,12 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
                     d="M12 13V7m0 0l-3 3m3-3l3 3" />
                 </svg>
               </GlassButton>
-            </div>
 
             {/* Microphone Toggle Button */}
-            <div className="shadow-lg">
               <GlassButton
                 onClick={handleToggleMic}
                 className="p-3"
-                bgColor={isMicEnabled ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)"}
+                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
                 aria-label={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
               >
                 {isMicEnabled ? (
@@ -274,7 +264,6 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
                   </svg>
                 )}
               </GlassButton>
-            </div>
           </div>
         )}
 
