@@ -63,7 +63,7 @@ export default function SalesOverviewModal({
   }, [employees, mode]);
 
   const PROCESS_COLOR_MAP: Record<string, string> = {
-    'Inbound Lead Qualification': DESIGN_TOKENS.colors.kpiAccent,
+    'Inbound Sales Development': DESIGN_TOKENS.colors.kpiAccent,
     'Client Follow-up': DESIGN_TOKENS.colors.kpiWarning,
     'Invoice Processing': DESIGN_TOKENS.colors.success,
     'New Client Onboarding': DESIGN_TOKENS.colors.kpiInfo,

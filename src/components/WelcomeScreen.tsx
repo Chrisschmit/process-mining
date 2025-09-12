@@ -30,7 +30,7 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               Hi Christophe!
             </h1>
             <p className={`${DESIGN_TOKENS.typography.large} text-gray-600 leading-relaxed max-w-xl mx-auto`}>
-              You were invited by <strong>Felix</strong> to showcase the processes you have been working on. This will be used to enhance and improve the processes of our sales department.
+              You were invited by <strong>Felix</strong> to showcase the <strong>Lead Generation Process</strong>. This will be used to enhance and improve the processes of our sales department.
             </p>
             <p className={`${DESIGN_TOKENS.typography.body} text-gray-500 leading-relaxed max-w-lg mx-auto mt-3`}>
               Work as you normally do. This tool will capture your know-how and spoken explanations, then turn them into a clear step-by-step summary.

@@ -164,7 +164,7 @@ function ProcessDiscrepancyCard({ workflow }: { workflow: WorkflowInsight }) {
 
       <div className="pt-4 border-t border-gray-200">
         <p className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>
-          <strong>Recommendation:</strong> {workflow.name === 'Inbound Lead Qualification' ? 
+          <strong>Recommendation:</strong> {workflow.name === 'Inbound Sales Development' ? 
             'Standardize lead qualification checklist and provide additional training for data entry efficiency.' :
             'Review process documentation and provide training to align team performance.'
           }
@@ -344,7 +344,7 @@ export default function WorkflowDetailModal({
               
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                  <div className={`${DESIGN_TOKENS.typography.h3}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.avgDuration}m</div>
+                  <div className={`${DESIGN_TOKENS.typography.h3}`} style={{color: 'hsl(221 65% 35%)'}}>{workflow.avgDuration} min</div>
                   <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Avg Duration</div>
                 </div>
                 <div>

@@ -128,7 +128,7 @@ export default function AdminDashboard() {
   const mockWorkflowInsights: WorkflowInsight[] = useMemo(() => [
     {
       id: 'wf-001',
-      name: 'Inbound Lead Qualification',
+      name: 'Inbound Sales Development',
       description: 'Lead intake, enrichment, CRM updates, and follow-ups across Gmail, LinkedIn, HubSpot, Slack, and Notion',
       frequency: 32,
       avgDuration: 8,
@@ -208,19 +208,19 @@ export default function AdminDashboard() {
     // workflow breakdowns (minutes)
     const workflows: Record<string, Record<string, number>> = {
       'Sarah Chen': {
-        'Inbound Lead Qualification': Math.round(totals['Sarah Chen'] * 0.65),
+        'Inbound Sales Development': Math.round(totals['Sarah Chen'] * 0.65),
         'Client Follow-up': Math.round(totals['Sarah Chen'] * 0.18),
         'Invoice Processing': Math.round(totals['Sarah Chen'] * 0.12),
         'New Client Onboarding': Math.round(totals['Sarah Chen'] * 0.05),
       },
       'Mike Rodriguez': {
-        'Inbound Lead Qualification': Math.round(totals['Mike Rodriguez'] * 0.42),
+        'Inbound Sales Development': Math.round(totals['Mike Rodriguez'] * 0.42),
         'Client Follow-up': Math.round(totals['Mike Rodriguez'] * 0.34),
         'Invoice Processing': Math.round(totals['Mike Rodriguez'] * 0.18),
         'New Client Onboarding': Math.round(totals['Mike Rodriguez'] * 0.06),
       },
       'Emily Watson': {
-        'Inbound Lead Qualification': Math.round(totals['Emily Watson'] * 0.30),
+        'Inbound Sales Development': Math.round(totals['Emily Watson'] * 0.30),
         'Client Follow-up': Math.round(totals['Emily Watson'] * 0.40),
         'Invoice Processing': Math.round(totals['Emily Watson'] * 0.20),
         'New Client Onboarding': Math.round(totals['Emily Watson'] * 0.10),
@@ -448,7 +448,7 @@ export default function AdminDashboard() {
                           onClick={() => setIsSalesOverviewOpen(true)}
                           className={`${DESIGN_TOKENS.components.buttonPrimary} px-6 py-3`}
                         >
-                          Process Overview
+                          Team Overview
                         </button>
                         <button 
                           onClick={() => setIsWorkflowDiffOpen(true)} 
@@ -544,11 +544,11 @@ export default function AdminDashboard() {
                       <div className={`${DESIGN_TOKENS.components.card} p-6`}>
                         <div className="flex items-center justify-between mb-4">
                           <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>Process Flow</h4>
-                          {selectedWorkflow.name === 'Inbound Lead Qualification' && (
+                          {selectedWorkflow.name === 'Inbound Sales Development' && (
                             <ExpandProcessMapButton />
                           )}
                         </div>
-                        {selectedWorkflow.name === 'Inbound Lead Qualification' ? (
+                        {selectedWorkflow.name === 'Inbound Sales Development' ? (
                           <div className="rounded-lg overflow-hidden" style={{ height: 520 }}>
                             <ReactFlowDraft />
                           </div>
@@ -655,7 +655,7 @@ export default function AdminDashboard() {
               workflow={selectedWorkflow}
               onSeek={handleSeekVideo}
             >
-              {selectedWorkflow?.name === 'Inbound Lead Qualification' ? (
+              {selectedWorkflow?.name === 'Inbound Sales Development' ? (
                 <ReactFlowDraft onSeek={handleSeekVideo} />
               ) : (
                 <div className="bg-gray-100 rounded-lg p-8 text-center h-full flex items-center justify-center">
@@ -706,7 +706,7 @@ function ExpandProcessMapButton() {
           <div className="absolute inset-0 bg-black/70" onClick={() => setOpen(false)} />
           <div className="relative bg-white rounded-xl shadow-2xl w-[92vw] h-[86vh] border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b border-gray-200">
-              <div className={`${DESIGN_TOKENS.typography.small} text-gray-700`}>Inbound Lead Qualification — Process Map</div>
+              <div className={`${DESIGN_TOKENS.typography.small} text-gray-700`}>Inbound Sales Development — Process Map</div>
               <button
                 onClick={() => setOpen(false)}
                 className={`${DESIGN_TOKENS.components.buttonSecondary} text-sm`}

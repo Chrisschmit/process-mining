@@ -1,5 +1,6 @@
-import React, { useRef, useMemo } from 'react';
-import ReactFlow, { Controls, Background, BackgroundVariant, MarkerType } from 'reactflow';
+import React, { useRef, useMemo, useState } from 'react';
+import ReactFlow, { Controls, Background, BackgroundVariant, MarkerType, Handle, Position } from 'reactflow';
+import 'reactflow/dist/style.css';
 import { DESIGN_TOKENS } from '../constants';
 
 interface WorkflowDiffModalProps {
@@ -7,202 +8,304 @@ interface WorkflowDiffModalProps {
   onClose: () => void;
 }
 
-type MiniNode = { 
+interface NodeData {
+  label: string;
+  description?: string;
+  tool?: string;
+  type?: 'process' | 'decision';
+}
+
+type ProcessNode = { 
   id: string; 
-  data: { label: string; duration?: string; tool?: string }; 
+  type: string;
+  data: NodeData; 
   position: { x: number; y: number }; 
-  style?: any; 
 };
 
-type MiniEdge = { 
+type ProcessEdge = { 
   id: string; 
   source: string; 
   target: string; 
   label?: string;
-  type?: string;
+  animated?: boolean;
+  style?: any;
+  markerEnd?: any;
+  labelStyle?: any;
 };
 
-// Enhanced workflow data with meaningful differences
-function buildSampleNodes(person: 'sarah' | 'mike'): MiniNode[] {
-  const baseNodes: MiniNode[] = [
+// Synthesized workflow nodes (left side)
+function buildSynthesizedNodes(): ProcessNode[] {
+  const centerX = 200;
+  const leftBranchX = 80;
+  const rightBranchX = 320;
+  
+  return [
     { 
       id: 'n1', 
-      data: { label: 'Capture Client Info', duration: '5 min', tool: 'HubSpot' }, 
-      position: { x: 120, y: 0 } 
+      type: 'card',
+      data: { 
+        label: 'Inbound Intake', 
+        description: 'Lead arrives via email or form',
+        tool: 'Gmail'
+      }, 
+      position: { x: centerX, y: 50 } 
     },
     { 
       id: 'n2', 
-      data: { label: 'Create CRM Record', duration: '3 min', tool: 'HubSpot' }, 
-      position: { x: 120, y: 120 } 
+      type: 'card',
+      data: { 
+        label: 'Create CRM Record', 
+        description: 'HubSpot entry with basic details',
+        tool: 'HubSpot'
+      }, 
+      position: { x: centerX, y: 180 } 
     },
     { 
       id: 'n3', 
-      data: { label: 'Send Welcome Email', duration: '2 min', tool: 'Gmail' }, 
-      position: { x: 120, y: 240 } 
+      type: 'card',
+      data: { 
+        label: 'Initial Qualification Check', 
+        description: 'Assess fit based on criteria',
+        tool: 'HubSpot'
+      }, 
+      position: { x: centerX, y: 310 } 
     },
     { 
       id: 'n4', 
-      data: { label: 'Schedule Kickoff', duration: '4 min', tool: 'Calendly' }, 
-      position: { x: 120, y: 360 } 
+      type: 'decision',
+      data: { 
+        label: 'Qualified?', 
+        description: 'Decision point based on ICP fit',
+        type: 'decision'
+      }, 
+      position: { x: centerX, y: 440 } 
     },
     { 
       id: 'n5', 
-      data: { label: 'Activate Account', duration: '3 min', tool: 'HubSpot' }, 
-      position: { x: 120, y: 480 } 
+      type: 'card',
+      data: { 
+        label: 'Update Status: Qualified', 
+        description: 'Mark as qualified lead',
+        tool: 'HubSpot'
+      }, 
+      position: { x: leftBranchX, y: 570 } 
+    },
+    { 
+      id: 'n6', 
+      type: 'card',
+      data: { 
+        label: 'Handover to AE', 
+        description: 'Notify via Slack and assign',
+        tool: 'Slack'
+      }, 
+      position: { x: leftBranchX, y: 700 } 
+    },
+    { 
+      id: 'n7', 
+      type: 'card',
+      data: { 
+        label: 'Update Status: Unqualified', 
+        description: 'Mark as unqualified',
+        tool: 'HubSpot'
+      }, 
+      position: { x: rightBranchX, y: 570 } 
     },
   ];
-
-  if (person === 'mike') {
-    // Mike has different workflow variations
-    return [
-      { 
-        id: 'n1', 
-        data: { label: 'Capture Client Info', duration: '7 min', tool: 'Excel' }, 
-        position: { x: 140, y: 0 } 
-      },
-      { 
-        id: 'n2', 
-        data: { label: 'Create CRM Record', duration: '5 min', tool: 'HubSpot' }, 
-        position: { x: 140, y: 120 } 
-      },
-      { 
-        id: 'n2a', 
-        data: { label: 'Data Validation', duration: '3 min', tool: 'Excel' }, 
-        position: { x: 280, y: 180 } 
-      },
-      { 
-        id: 'n3', 
-        data: { label: 'Send Intro Email', duration: '4 min', tool: 'Outlook' }, 
-        position: { x: 140, y: 280 } 
-      },
-      { 
-        id: 'n4', 
-        data: { label: 'Share Docs & Schedule', duration: '8 min', tool: 'DocuSign' }, 
-        position: { x: 140, y: 400 } 
-      },
-      { 
-        id: 'n5', 
-        data: { label: 'Activate Account', duration: '2 min', tool: 'HubSpot' }, 
-        position: { x: 140, y: 520 } 
-      },
-    ];
-  }
-
-  return baseNodes;
 }
 
-function buildSampleEdges(person: 'sarah' | 'mike'): MiniEdge[] {
-  const baseEdges: MiniEdge[] = [
-    { id: 'e1', source: 'n1', target: 'n2', label: 'Direct', type: 'default' },
-    { id: 'e2', source: 'n2', target: 'n3', label: 'Auto', type: 'default' },
-    { id: 'e3', source: 'n3', target: 'n4', label: 'Manual', type: 'default' },
-    { id: 'e4', source: 'n4', target: 'n5', label: 'System', type: 'default' },
+// Detailed observations nodes (right side) 
+function buildDetailedNodes(): ProcessNode[] {
+  const centerX = 180;
+  const leftBranchX = 50;
+  const rightBranchX = 320;
+  const verticalSpacing = 120; // Increased spacing between nodes
+  
+  return [
+    { id: 'n1', type: 'card', data: { label: 'Inbound email received', tool: 'Gmail' }, position: { x: centerX, y: 30 } },
+    { id: 'n2', type: 'card', data: { label: 'Auto acknowledgement sent', tool: 'Gmail' }, position: { x: centerX, y: 30 + verticalSpacing } },
+    { id: 'n3', type: 'decision', data: { label: 'Human contact?', description: 'Check for suspicious or automated sender', type: 'decision' }, position: { x: centerX, y: 30 + verticalSpacing * 2 } },
+    { id: 'n4', type: 'card', data: { label: 'Mark as Not sales relevant', description: 'Stop processing - automated sender', tool: 'HubSpot' }, position: { x: rightBranchX + 80, y: 30 + verticalSpacing * 3 } },
+    { id: 'n5', type: 'card', data: { label: 'Extract contact details', tool: 'Gmail' }, position: { x: centerX, y: 30 + verticalSpacing * 3 } },
+    { id: 'n6', type: 'card', data: { label: 'Validate email format', tool: 'HubSpot' }, position: { x: centerX, y: 30 + verticalSpacing * 4 } },
+    { id: 'n7', type: 'card', data: { label: 'Identify primary contact', tool: 'HubSpot' }, position: { x: centerX, y: 30 + verticalSpacing * 5 } },
+    { id: 'n8', type: 'card', data: { label: 'HubSpot duplicate check', tool: 'HubSpot' }, position: { x: centerX, y: 30 + verticalSpacing * 6 } },
+    { id: 'n9', type: 'decision', data: { label: 'Duplicate found?', type: 'decision' }, position: { x: centerX, y: 30 + verticalSpacing * 7 } },
+    { id: 'n10', type: 'card', data: { label: 'Attach to existing contact', tool: 'HubSpot' }, position: { x: leftBranchX, y: 30 + verticalSpacing * 8 } },
+    { id: 'n11', type: 'card', data: { label: 'Create new contact', tool: 'HubSpot' }, position: { x: rightBranchX, y: 30 + verticalSpacing * 8 } },
+    { id: 'n12', type: 'card', data: { label: 'Enrich firmographics', tool: 'LinkedIn' }, position: { x: centerX, y: 30 + verticalSpacing * 9 } },
+    { id: 'n13', type: 'card', data: { label: 'Record legal basis', tool: 'HubSpot' }, position: { x: centerX, y: 30 + verticalSpacing * 10 } },
+    { id: 'n14', type: 'decision', data: { label: 'Data complete?', type: 'decision' }, position: { x: centerX, y: 30 + verticalSpacing * 11 } },
+    { id: 'n15', type: 'card', data: { label: 'Apply ICP fit score', tool: 'HubSpot' }, position: { x: leftBranchX, y: 30 + verticalSpacing * 12 } },
+    { id: 'n16', type: 'card', data: { label: 'Request missing details', tool: 'Gmail' }, position: { x: rightBranchX, y: 30 + verticalSpacing * 12 } },
+    { id: 'n17', type: 'decision', data: { label: 'ICP fit above threshold?', type: 'decision' }, position: { x: leftBranchX, y: 30 + verticalSpacing * 13 } },
   ];
-
-  if (person === 'mike') {
-    // Mike has additional validation step
-    return [
-      { id: 'e1', source: 'n1', target: 'n2', label: 'Manual', type: 'default' },
-      { id: 'e2a', source: 'n2', target: 'n2a', label: 'Review', type: 'default' },
-      { id: 'e2b', source: 'n2a', target: 'n3', label: 'Verified', type: 'default' },
-      { id: 'e3', source: 'n3', target: 'n4', label: 'Combined', type: 'default' },
-      { id: 'e4', source: 'n4', target: 'n5', label: 'Complete', type: 'default' },
-    ];
-  }
-
-  return baseEdges;
 }
 
-function ReactFlowMini({ nodes, edges, color }: { 
-  nodes: MiniNode[]; 
-  edges: MiniEdge[]; 
-  color: string;
+// Synthesized workflow edges
+function buildSynthesizedEdges(): ProcessEdge[] {
+  return [
+    { id: 'e1', source: 'n1', target: 'n2', animated: true },
+    { id: 'e2', source: 'n2', target: 'n3', animated: true },
+    { id: 'e3', source: 'n3', target: 'n4', animated: true },
+    { id: 'e4', source: 'n4', target: 'n5', label: 'Yes', animated: true },
+    { id: 'e5', source: 'n5', target: 'n6', animated: true },
+    { id: 'e6', source: 'n4', target: 'n7', label: 'No', animated: true },
+  ];
+}
+
+// Detailed observations edges
+function buildDetailedEdges(): ProcessEdge[] {
+  return [
+    { id: 'e1', source: 'n1', target: 'n2', animated: true },
+    { id: 'e2', source: 'n2', target: 'n3', animated: true },
+    { id: 'e3', source: 'n3', target: 'n4', label: 'No', animated: true },
+    { id: 'e4', source: 'n3', target: 'n5', label: 'Yes', animated: true },
+    { id: 'e5', source: 'n5', target: 'n6', animated: true },
+    { id: 'e6', source: 'n6', target: 'n7', animated: true },
+    { id: 'e7', source: 'n7', target: 'n8', animated: true },
+    { id: 'e8', source: 'n8', target: 'n9', animated: true },
+    { id: 'e9', source: 'n9', target: 'n10', label: 'Yes', animated: true },
+    { id: 'e10', source: 'n9', target: 'n11', label: 'No', animated: true },
+    { id: 'e11', source: 'n10', target: 'n12', animated: true },
+    { id: 'e12', source: 'n11', target: 'n12', animated: true },
+    { id: 'e13', source: 'n12', target: 'n13', animated: true },
+    { id: 'e14', source: 'n13', target: 'n14', animated: true },
+    { id: 'e15', source: 'n14', target: 'n15', label: 'Yes', animated: true },
+    { id: 'e16', source: 'n14', target: 'n16', label: 'No', animated: true },
+    { id: 'e17', source: 'n16', target: 'n15', animated: true },
+    { id: 'e18', source: 'n15', target: 'n17', animated: true },
+  ];
+}
+
+// NodeCard component with AdminDashboard styling
+const NodeCard = ({ data }: { data: NodeData }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  return (
+    <div 
+      className={`${
+        data.type === 'decision' ? 'bg-yellow-50 border-yellow-200' : 'bg-white border-gray-200'
+      } border-2 rounded-lg p-3 min-w-[280px] shadow-sm relative`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        className="!bg-gray-400 !border-2 !border-gray-300 !w-3 !h-3" 
+        style={{ top: -6 }}
+      />
+      
+      {/* Tool badge in top right */}
+      {data.tool && (
+        <div className="absolute top-2 right-2">
+          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+            {data.tool}
+          </span>
+        </div>
+      )}
+      
+      <div className="space-y-2 pr-16">
+        <div className={`${DESIGN_TOKENS.typography.body} font-semibold text-gray-900`}>
+          {data.label}
+        </div>
+        
+        {data.description && (
+          <div className={`${DESIGN_TOKENS.typography.small} text-gray-600 ${
+            isExpanded ? 'block' : 'line-clamp-2'
+          }`}>
+            {data.description}
+          </div>
+        )}
+      </div>
+      
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        className="!bg-gray-400 !border-2 !border-gray-300 !w-3 !h-3" 
+        style={{ bottom: -6 }}
+      />
+    </div>
+  );
+};
+
+function ReactFlowMini({ nodes, edges, color, isLeftSide = false }: { 
+  nodes: ProcessNode[]; 
+  edges: ProcessEdge[]; 
+  color: string | undefined;
+  isLeftSide?: boolean;
 }) {
   const instanceRef = useRef<any>(null);
 
   const onInit = (inst: any) => {
     instanceRef.current = inst;
-    requestAnimationFrame(() => applyTopAnchor(inst));
-    setTimeout(() => applyTopAnchor(inst), 80);
+    requestAnimationFrame(() => applyAutoLayout(inst));
+    setTimeout(() => applyAutoLayout(inst), 100);
   };
 
-  const applyTopAnchor = (inst: any) => {
+  const applyAutoLayout = (inst: any) => {
     if (!inst) return;
-    inst.fitView({ padding: 0.15 });
+    // Different zoom behavior for left vs right side
+    const padding = isLeftSide ? 0.2 : 0.3;
+    const zoomMultiplier = isLeftSide ? 1.1 : 0.85;
+    const maxZoom = isLeftSide ? 1.2 : 0.8;
+    const minZoom = isLeftSide ? 0.6 : 0.4;
+    
+    inst.fitView({ padding });
     const vp = inst.getViewport();
-    const minY = Math.min(...nodes.map((n) => n.position.y));
-    inst.setViewport({ x: vp.x, y: -minY + 48, zoom: Math.min(1.0, Math.max(0.5, vp.zoom * 0.9)) });
+    
+    inst.setViewport({ 
+      x: vp.x, 
+      y: vp.y, 
+      zoom: Math.min(maxZoom, Math.max(minZoom, vp.zoom * zoomMultiplier))
+    });
   };
-
-  const styledNodes = nodes.map((n) => ({
-    ...n,
-    style: {
-      border: `2px solid ${color}`,
-      borderRadius: 12,
-      padding: 8,
-      background: '#fff',
-      color: DESIGN_TOKENS.colors.foreground,
-      width: 200,
-      fontSize: '12px',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    },
-  }));
 
   const styledEdges = edges.map((e) => ({
     ...e,
+    type: 'straight',
     markerEnd: { 
       type: MarkerType.ArrowClosed, 
       width: 20, 
       height: 20, 
-      color: color 
+      color: '#6b7280' 
     },
     animated: true,
     style: { 
-      stroke: color, 
+      stroke: '#6b7280', 
       strokeWidth: 2,
     },
     labelStyle: {
       fontSize: '10px',
       fontWeight: 500,
-      fill: color,
+      fill: '#374151',
       background: 'rgba(255,255,255,0.9)',
       padding: '2px 4px',
       borderRadius: '4px',
     },
   }));
 
-  const CustomNodeComponent = ({ data }: { data: any }) => (
-    <div className="workflow-node">
-      <div className={`${DESIGN_TOKENS.typography.body} font-semibold mb-1`}>
-        {data.label}
-      </div>
-      <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mb-1`}>
-        {data.duration}
-      </div>
-      <div className={`${DESIGN_TOKENS.typography.caption} font-medium text-blue-600`}>
-        {data.tool}
-      </div>
-    </div>
-  );
-
-  const nodeTypes = useMemo(() => ({ default: CustomNodeComponent }), []);
+  const nodeTypes = useMemo(() => ({ 
+    card: NodeCard,
+    decision: NodeCard,
+    default: NodeCard 
+  }), []);
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }}>
       <ReactFlow
-        nodes={styledNodes}
+        nodes={nodes}
         edges={styledEdges}
         nodeTypes={nodeTypes}
         onInit={onInit}
         fitView
-        fitViewOptions={{ padding: 0.1 }}
-        nodesDraggable={false}
+        fitViewOptions={{ padding: 0.2 }}
+        nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={false}
         zoomOnScroll={false}
         panOnScroll={false}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e2e8f0" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#94a3b8" />
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>
@@ -212,18 +315,14 @@ function ReactFlowMini({ nodes, edges, color }: {
 export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalProps) {
   if (!open) return null;
 
-  const sarahNodes = buildSampleNodes('sarah');
-  const mikeNodes = buildSampleNodes('mike');
-  const sarahEdges = buildSampleEdges('sarah');
-  const mikeEdges = buildSampleEdges('mike');
+  const synthesizedNodes = buildSynthesizedNodes();
+  const detailedNodes = buildDetailedNodes();
+  const synthesizedEdges = buildSynthesizedEdges();
+  const detailedEdges = buildDetailedEdges();
 
   // Calculate workflow metrics for comparison
-  const sarahTotalTime = sarahNodes.reduce((sum, node) => 
-    sum + parseInt(node.data.duration?.replace(' min', '') || '0'), 0
-  );
-  const mikeTotalTime = mikeNodes.reduce((sum, node) => 
-    sum + parseInt(node.data.duration?.replace(' min', '') || '0'), 0
-  );
+  const synthesizedSteps = synthesizedNodes.length;
+  const detailedSteps = detailedNodes.length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -234,19 +333,19 @@ export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalPr
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div>
             <h3 className={`${DESIGN_TOKENS.typography.h2} text-gray-900 mb-2`}>
-              Workflow Process Comparison
+              Lead Generation Process Analysis
             </h3>
             <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>
-              New Client Onboarding: Sarah Chen vs Mike Rodriguez
+              Synthesized Core Workflow vs Detailed Observations
             </p>
             <div className="flex gap-4 mt-3">
               <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>
-                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#2563eb' }}></span>
-                Sarah: {sarahTotalTime} min total | {sarahNodes.length} steps
+                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: DESIGN_TOKENS.colors.kpiInfo }}></span>
+                Synthesized: {synthesizedSteps} core steps
               </div>
               <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500`}>
-                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#7c3aed' }}></span>
-                Mike: {mikeTotalTime} min total | {mikeNodes.length} steps
+                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: DESIGN_TOKENS.colors.kpiWarning }}></span>
+                Detailed: {detailedSteps} observed steps
               </div>
             </div>
           </div>
@@ -261,50 +360,46 @@ export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalPr
         {/* Comparison Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(92vh-140px)]">
           
-          {/* Sarah's Workflow */}
-          <div className={`${DESIGN_TOKENS.components.card} overflow-hidden flex flex-col`}>
-            <div className="p-4 border-b border-gray-200 bg-blue-50">
+          {/* Synthesized Workflow */}
+          <div className={`${DESIGN_TOKENS.components.card} overflow-hidden flex flex-col border-2`} style={{ borderColor: DESIGN_TOKENS.colors.kpiInfo }}>
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
-                <h4 className={`${DESIGN_TOKENS.typography.h4} text-blue-700`}>
-                  Sarah Chen - Streamlined Process
+                <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>
+                  Synthesized Process: Inbound Sales Development
                 </h4>
-                <div className={`${DESIGN_TOKENS.typography.caption} text-blue-600 bg-blue-100 px-3 py-1 rounded-full`}>
-                  Efficient: {sarahTotalTime} min
-                </div>
               </div>
-              <p className={`${DESIGN_TOKENS.typography.small} text-blue-600 mt-2`}>
-                Direct workflow with minimal steps and automation
+              <p className={`${DESIGN_TOKENS.typography.small} text-gray-600 mt-2`}>
+                90% Overlapping with the observed processes performed by the 3 operators
               </p>
             </div>
             <div className="flex-1 p-2" style={{ minHeight: '400px' }}>
               <ReactFlowMini
-                color="#2563eb"
-                nodes={sarahNodes}
-                edges={sarahEdges}
+                color={DESIGN_TOKENS.colors.kpiInfo}
+                nodes={synthesizedNodes}
+                edges={synthesizedEdges}
+                isLeftSide={true}
               />
             </div>
           </div>
 
-          {/* Mike's Workflow */}
-          <div className={`${DESIGN_TOKENS.components.card} overflow-hidden flex flex-col`}>
-            <div className="p-4 border-b border-gray-200 bg-purple-50">
+          {/* Detailed Observations Workflow */}
+          <div className={`${DESIGN_TOKENS.components.card} overflow-hidden flex flex-col border-2`} style={{ borderColor: DESIGN_TOKENS.colors.kpiWarning }}>
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
-                <h4 className={`${DESIGN_TOKENS.typography.h4} text-purple-700`}>
-                  Mike Rodriguez - Thorough Process
+                <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>
+                  All Detailed Observations - Inbound Sales Development
                 </h4>
-                <div className={`${DESIGN_TOKENS.typography.caption} text-purple-600 bg-purple-100 px-3 py-1 rounded-full`}>
-                  Detailed: {mikeTotalTime} min
-                </div>
               </div>
-              <p className={`${DESIGN_TOKENS.typography.small} text-purple-600 mt-2`}>
-                Comprehensive workflow with validation and additional tools
+              <p className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>
+                Detailed view of the individual steps performed by the operators.
               </p>
             </div>
             <div className="flex-1 p-2" style={{ minHeight: '400px' }}>
               <ReactFlowMini
-                color="#7c3aed"
-                nodes={mikeNodes}
-                edges={mikeEdges}
+                color={DESIGN_TOKENS.colors.kpiWarning}
+                nodes={detailedNodes}
+                edges={detailedEdges}
+                isLeftSide={false}
               />
             </div>
           </div>
@@ -314,23 +409,23 @@ export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalPr
         <div className="border-t border-gray-200 bg-gray-50 p-4">
           <div className="grid grid-cols-3 gap-6 text-center">
             <div>
-              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: 'hsl(221 65% 35%)' }}>
-                +{Math.abs(mikeTotalTime - sarahTotalTime)} min
+              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: DESIGN_TOKENS.colors.kpiInfo }}>
+                {Math.round(((detailedSteps - synthesizedSteps) / synthesizedSteps) * 100)}%
               </div>
               <div className={`${DESIGN_TOKENS.typography.caption} text-gray-600`}>
-                Time Difference
+                Process Complexity Increase
               </div>
             </div>
             <div>
-              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: 'hsl(221 65% 35%)' }}>
-                {mikeNodes.length - sarahNodes.length} extra steps
+              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: DESIGN_TOKENS.colors.kpiInfo }}>
+                {detailedSteps - synthesizedSteps} extra steps
               </div>
               <div className={`${DESIGN_TOKENS.typography.caption} text-gray-600`}>
-                Process Complexity
+                Additional Observations
               </div>
             </div>
             <div>
-              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: 'hsl(142 65% 30%)' }}>
+              <div className={`${DESIGN_TOKENS.typography.h4}`} style={{ color: DESIGN_TOKENS.colors.kpiSuccess }}>
                 Optimization Potential
               </div>
               <div className={`${DESIGN_TOKENS.typography.caption} text-gray-600`}>
