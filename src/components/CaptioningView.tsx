@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import VideoScrubber from "./VideoScrubber";
 import DraggableContainer from "./DraggableContainer";
+import PromptInput from "./PromptInput";
 import LiveCaption from "./LiveCaption";
 import GlassButton from "./GlassButton";
 import { useVLMContext } from "../context/useVLMContext";
-import { PROMPTS, TIMING, GLASS_EFFECTS } from "../constants";
+import { PROMPTS, TIMING } from "../constants";
 import { RecordingManager } from "../utils/RecordingManager";
 
 interface CaptioningViewProps {
@@ -74,7 +75,7 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
   const [caption, setCaption] = useState<string>("");
   // For video files, start analysis immediately; for screen recording, wait for user to start
   const [isLoopRunning, setIsLoopRunning] = useState<boolean>(sourceType === "file");
-  const [currentPrompt] = useState<string>(PROMPTS.default);
+  const [currentPrompt, setCurrentPrompt] = useState<string>(PROMPTS.default);
   const [error, setError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isMicEnabled, setIsMicEnabled] = useState<boolean>(true);
@@ -123,6 +124,10 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
 
   useCaptioningLoop(videoRef, isLoopRunning, promptRef, handleCaptionUpdate, handleError);
 
+  // const handlePromptChange = useCallback((prompt: string) => {
+  //   setCurrentPrompt(prompt);
+  //   setError(null);
+  // }, []);
 
   const handleStartRecording = useCallback(async () => {
     try {
@@ -212,13 +217,13 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
         {/* Recording Controls - Only show for screen recording */}
         {sourceType === "screen" && (
           <div className="absolute top-4 left-4 z-[200]">
-              <GlassButton
-                onClick={isRecording ? handleStopRecording : handleStartRecording}
-                className="px-6 py-3"
-                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
-              >
-                {isRecording ? "Stop Recording & Analysis" : "Start Recording"}
-              </GlassButton>
+            <GlassButton
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
+              className="px-6 py-3"
+              bgColor={isRecording ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)"}
+            >
+              {isRecording ? "Stop Recording & Analysis" : "Start Recording"}
+            </GlassButton>
             {isRecording && <div className="mt-2 text-sm text-red-400">Recording</div>}
             {!isRecording && !isLoopRunning && caption === "" && (
               <div className="mt-2 text-sm text-gray-400">Click to start recording and VLM analysis</div>
@@ -230,40 +235,44 @@ export default function CaptioningView({ videoRef, sourceType, userInfo }: Capti
         {sourceType === "screen" && (
           <div className="absolute top-4 right-4 z-[200] flex gap-2">
             {/* Change Screen Share Button */}
+            <div className="shadow-lg">
               <GlassButton
                 onClick={handleChangeScreenShare}
                 className="p-3"
-                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
+                bgColor="rgba(59, 130, 246, 0.1)"
                 aria-label="Change screen share"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth={2} />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M12 13V7m0 0l-3 3m3-3l3 3" />
-                </svg>
+                <img 
+                  src="/cast.png" 
+                  alt="Screen share" 
+                  className="w-6 h-6"
+                  style={{ filter: 'invert(1)' }}
+                />
               </GlassButton>
+            </div>
 
             {/* Microphone Toggle Button */}
+            <div className="shadow-lg">
               <GlassButton
                 onClick={handleToggleMic}
                 className="p-3"
-                bgColor={GLASS_EFFECTS.COLORS.DEFAULT_BG}
+                bgColor={isMicEnabled ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)"}
                 aria-label={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
               >
-                {isMicEnabled ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                  </svg>
-                )}
-              </GlassButton>
+              {isMicEnabled ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              )}
+            </GlassButton>
           </div>
         )}
 

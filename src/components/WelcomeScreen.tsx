@@ -33,7 +33,7 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               You were invited by <strong>Felix</strong> to showcase the <strong>Lead Generation Process</strong>. This will be used to enhance and improve the processes of our sales department.
             </p>
             <p className={`${DESIGN_TOKENS.typography.body} text-gray-500 leading-relaxed max-w-lg mx-auto mt-3`}>
-              Work as you normally do. This tool will capture your know-how and spoken explanations, then turn them into a clear step-by-step summary.
+              Work as you normally do. This tool will capture your know-how, then turn them into a clear step-by-step summary.
             </p>
           </div>
         </div>
@@ -49,16 +49,13 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             Start my Session
           </button>
 
-          <p className={`${DESIGN_TOKENS.typography.small} text-gray-500 text-center`}>
-            AI model will load when you click start
-          </p>
           
           <button
             onClick={handleAdminDashboard}
             className={`${DESIGN_TOKENS.components.buttonSecondary} px-8 py-3 text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 mt-2`}
             aria-label="View Mining Output Admin Dashboard"
           >
-            View Mining Output
+            View Mining Results
           </button>
         </div>
       </div>

@@ -126,7 +126,7 @@ export const TIMING = {
   FRAME_CAPTURE_DELAY: 500, // Capture every 500ms (2 fps) - good balance for process analysis
 } as const;
 
-const DEFAULT_PROMPT = `As an expert Senior IT Consultant specializing in workflow analysis and mapping, your task is to describe in high detail what you see on the screen, what tool is being used, and what is happening.`;
+const DEFAULT_PROMPT = `Your task is to describe in detail what you observe and provide a summary of the process being performed.`;
 
 export const PROMPTS = {
   default: DEFAULT_PROMPT,

@@ -119,7 +119,6 @@ export default function SalesOverviewModal({
             <div className="flex flex-wrap gap-2">
               <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Last week</span>
               <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">{employees.length} employees</span>
-              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">{summaryHours} hours processed</span>
               <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">{coreWorkflows} core workflows</span>
             </div>
           </div>

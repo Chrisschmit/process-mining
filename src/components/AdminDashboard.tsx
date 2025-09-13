@@ -130,7 +130,7 @@ export default function AdminDashboard() {
       id: 'wf-001',
       name: 'Inbound Sales Development',
       description: 'Lead intake, enrichment, CRM updates, and follow-ups across Gmail, LinkedIn, HubSpot, Slack, and Notion',
-      frequency: 32,
+      frequency: 14,
       avgDuration: 8,
       efficiency: 0.85,
       systems: ['Gmail', 'LinkedIn', 'HubSpot', 'Slack', 'Notion'],
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
       id: 'wf-002',
       name: 'Client Follow-up',
       description: 'Automated data entry from email attachments to ERP system',
-      frequency: 72,
+      frequency: 26,
       avgDuration: 4,
       efficiency: 0.72,
       systems: ['Outlook', 'SAP', 'Excel'],
@@ -150,8 +150,8 @@ export default function AdminDashboard() {
       id: 'wf-003',
       name: 'Invoice Processing',
       description: 'Automated data entry from email attachments to ERP system',
-      frequency: 72,
-      avgDuration: 4,
+      frequency: 18,
+      avgDuration: 3,
       efficiency: 0.72,
       systems: ['Outlook', 'SAP', 'Excel'],
       category: 'data-entry'
@@ -390,78 +390,39 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {/* Top Header - KPIs */}
+            {/* Fixed Department Overview Header */}
             <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
-              <div className="mb-4">
-                <h2 className={`${DESIGN_TOKENS.typography.h2} text-gray-900 mb-2`}>{selectedProject.name}</h2>
-                <p className={`${DESIGN_TOKENS.typography.body} text-gray-600`}>Department: {selectedProject.department}</p>
-              </div>
-
-              {projectKPIs && (
-                <div className="grid grid-cols-4 gap-6">
-                  <div className={`${DESIGN_TOKENS.components.card} p-4`}>
-                    <div className={`${DESIGN_TOKENS.typography.h2}`} style={{color: 'hsl(221 65% 35%)'}}>{projectKPIs.completionRate}</div>
-                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Recordings Completed</div>
-                    <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>{projectKPIs.completionPercentage}% complete</div>
-                  </div>
-                  
-                  <div className={`${DESIGN_TOKENS.components.card} p-4`}>
-                    <div className={`${DESIGN_TOKENS.typography.h2}`} style={{color: 'hsl(221 65% 35%)'}}>{projectKPIs.totalAnalyzed}</div>
-                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Hours Analyzed</div>
-                    <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>Total processed time</div>
-                  </div>
-                  
-                  <div className={`${DESIGN_TOKENS.components.card} p-4`}>
-                    <div className={`${DESIGN_TOKENS.typography.h4}`} style={{color: 'hsl(221 65% 35%)'}}>
-                      {projectKPIs.topApplications[0]?.name}
+              <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-4`}>Sales Department Overview</h3>
+              <div className={`${DESIGN_TOKENS.components.card} p-6`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>Review your team's process discovery</h4>
+                    <p className={`${DESIGN_TOKENS.typography.body} text-gray-700 mb-4 leading-relaxed`}>
+                      Last 7 days: we processed <strong>10 hours</strong> across <strong>3 Sales team members</strong>.
+                      AI identified <strong>4 core workflows</strong> covering <strong>~80% of activity time</strong>.
+                      
+                    </p>
+                    <div className="flex gap-3 items-center">
+                      <button
+                        onClick={() => setIsSalesOverviewOpen(true)}
+                        className={`${DESIGN_TOKENS.components.buttonPrimary} px-6 py-3`}
+                      >
+                        Team Overview
+                      </button>
+                      <button 
+                        onClick={() => setIsWorkflowDiffOpen(true)} 
+                        className={`${DESIGN_TOKENS.components.buttonSecondary} ml-3 px-6 py-3`}
+                      >
+                        Compare workflows
+                      </button>
                     </div>
-                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Top Application</div>
-                    <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>{projectKPIs.topApplications[0]?.percentage}% usage</div>
-                  </div>
-                  
-                  <div className={`${DESIGN_TOKENS.components.card} p-4`}>
-                    <div className={`${DESIGN_TOKENS.typography.h2}`} style={{color: 'hsl(221 65% 35%)'}}>{mockWorkflowInsights.length}</div>
-                    <div className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>Workflows Identified</div>
-                    <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>AI-clustered processes</div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
-
-            {/* Scrollable Content Area - Department Overview + Workflow Insights */}
+            {/* Scrollable Content Area - Workflow Insights */}
             <div className="flex-1 overflow-y-auto bg-gray-50">
-              {/* Department Overview CTA */}
-              <div className="bg-white border-b border-gray-200 p-6">
-                <h3 className={`${DESIGN_TOKENS.typography.h3} text-gray-900 mb-4`}>Sales Department Overview</h3>
-                <div className={`${DESIGN_TOKENS.components.card} p-6`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900 mb-2`}>Review your team's process discovery</h4>
-                      <p className={`${DESIGN_TOKENS.typography.body} text-gray-700 mb-4 leading-relaxed`}>
-                        Last 7 days: we processed <strong>29 hours</strong> across <strong>3 Sales team members</strong>.
-                        AI identified <strong>4 core workflows</strong> covering <strong>~80% of activity time</strong>.
-                        Notable variance: <strong>Invoice Processing</strong> ranges between <strong>12–28%</strong> across the team.
-                      </p>
-                      <div className="flex gap-3 items-center">
-                        <button
-                          onClick={() => setIsSalesOverviewOpen(true)}
-                          className={`${DESIGN_TOKENS.components.buttonPrimary} px-6 py-3`}
-                        >
-                          Team Overview
-                        </button>
-                        <button 
-                          onClick={() => setIsWorkflowDiffOpen(true)} 
-                          className={`${DESIGN_TOKENS.components.buttonSecondary} ml-3 px-6 py-3`}
-                        >
-                          Compare workflows
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Main Content - Workflow Insights */}
               <div className="p-6">
                 {viewLevel === 'overview' && (

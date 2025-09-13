@@ -313,6 +313,18 @@ function ReactFlowMini({ nodes, edges, color, isLeftSide = false }: {
 }
 
 export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalProps) {
+  const [selectedSession, setSelectedSession] = React.useState('sarah-20250909');
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+
+  // Mock sessions data
+  const sessions = [
+    { id: 'sarah-20250909', name: 'Sarah Chen', date: '20250909', label: 'Sarah Chen-20250909' },
+    { id: 'emily-20250910', name: 'Emily Watson', date: '20250910', label: 'Emily Watson-20250910' },
+    { id: 'mike-20250908', name: 'Mike Rodriguez', date: '20250908', label: 'Mike Rodriguez-20250908' },
+  ];
+
+  const currentSession = sessions.find(s => s.id === selectedSession) || sessions[0];
+
   if (!open) return null;
 
   const synthesizedNodes = buildSynthesizedNodes();
@@ -387,8 +399,49 @@ export default function WorkflowDiffModal({ open, onClose }: WorkflowDiffModalPr
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
                 <h4 className={`${DESIGN_TOKENS.typography.h4} text-gray-900`}>
-                  All Detailed Observations - Inbound Sales Development
+                  {currentSession.name}: Inbound Sales Development
                 </h4>
+                
+                {/* Session Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`${DESIGN_TOKENS.components.buttonSecondary} px-4 py-2 flex items-center gap-2`}
+                  >
+                    <span className={`${DESIGN_TOKENS.typography.small}`}>
+                      {currentSession.label}
+                    </span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      {sessions.map((session) => (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            setSelectedSession(session.id);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                            session.id === selectedSession ? 'bg-gray-50' : ''
+                          } ${sessions[0].id === session.id ? 'rounded-t-lg' : ''} ${
+                            sessions[sessions.length - 1].id === session.id ? 'rounded-b-lg' : ''
+                          }`}
+                        >
+                          <div className={`${DESIGN_TOKENS.typography.small} text-gray-900`}>
+                            {session.label}
+                          </div>
+                          <div className={`${DESIGN_TOKENS.typography.caption} text-gray-500 mt-1`}>
+                            {session.name} • {session.date}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <p className={`${DESIGN_TOKENS.typography.small} text-gray-600`}>
                 Detailed view of the individual steps performed by the operators.
